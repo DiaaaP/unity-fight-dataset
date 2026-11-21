@@ -1,0 +1,27 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:Style src="DatasetGeneratorWindow.uss" />
+    <ui:ScrollView class="generator-panel">
+        <ui:Label text="Генерация видео" class="heading" />
+        <ui:Label name="state" class="state wrap" />
+        <ui:ProgressBar name="batchProgress" low-value="0" high-value="100" class="progress" />
+        <ui:Label name="totals" class="wrap block" />
+        <ui:Label name="current" class="wrap" />
+        <ui:ProgressBar name="frameProgress" low-value="0" high-value="100" class="progress" />
+        <ui:Label name="elapsed" class="block" />
+        <ui:VisualElement class="button-row">
+            <ui:Button name="start" text="Создать пакет" />
+            <ui:Button name="pause" text="Пауза" />
+            <ui:Button name="resume" text="Продолжить" />
+        </ui:VisualElement>
+        <ui:Button name="saveStop" text="Сохранить и остановить" class="block" />
+        <ui:Label text="Пауза продолжает с текущего кадра, пока Unity открыта. После остановки, компиляции или перезапуска готовые видео сохраняются, а незавершённый сценарий записывается заново." class="wrap block" />
+        <ui:TextField name="output" label="Папка результатов" readonly="true" multiline="true" class="block" />
+        <ui:VisualElement class="button-row">
+            <ui:Button name="open" text="Открыть папку" />
+            <ui:Button name="choose" text="Продолжить из папки…" />
+            <ui:Button name="config" text="Настройки" />
+        </ui:VisualElement>
+        <ui:Label text="Продолжение после перезапуска доступно для новых пакетов с файлом resume.json. Если изменены использованные модели, анимации или код генератора, создай новый пакет." class="wrap block" />
+        <ui:HelpBox name="error" message-type="Error" class="hidden block" />
+    </ui:ScrollView>
+</ui:UXML>

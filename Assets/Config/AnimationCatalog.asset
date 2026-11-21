@@ -1,0 +1,766 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ec5299515ea8694f9cb3d58561bca8b, type: 3}
+  m_Name: AnimationCatalog
+  m_EditorClassIdentifier: 
+  clips:
+  - key: d11a08fc4596edd448b09a60ce748540:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Kick/kick_1.fbx
+    displayName: kick_1
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: d11a08fc4596edd448b09a60ce748540, type: 3}
+    kind: 4
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 1.3666668
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: 5ce47a9a54b19b04481b36b542fa0961:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Kick/kick_10.fbx
+    displayName: kick_10
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: 5ce47a9a54b19b04481b36b542fa0961, type: 3}
+    kind: 4
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 2.2
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: 15d745214b173ac45b4af42d6dc5e51a:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Kick/kick_11.fbx
+    displayName: kick_11
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: 15d745214b173ac45b4af42d6dc5e51a, type: 3}
+    kind: 4
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 1.6000001
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: 36787dd4105fe1847a6d8c813d7bae68:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Kick/kick_12.fbx
+    displayName: kick_12
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: 36787dd4105fe1847a6d8c813d7bae68, type: 3}
+    kind: 4
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 1.5000001
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: c9182ab0049d4c64f94ff2d639f91f8e:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Kick/kick_14.fbx
+    displayName: kick_14
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: c9182ab0049d4c64f94ff2d639f91f8e, type: 3}
+    kind: 4
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 2
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: 471096899714b394396d993071f47f13:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Kick/kick_15.fbx
+    displayName: kick_15
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: 471096899714b394396d993071f47f13, type: 3}
+    kind: 4
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 2.0333335
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: 38c69c5be09551546ba8212cc09e906b:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Kick/kick_16.fbx
+    displayName: kick_16
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: 38c69c5be09551546ba8212cc09e906b, type: 3}
+    kind: 4
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 1.6666667
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: 933f310a969109c409261e68fa3111f2:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Kick/kick_17.fbx
+    displayName: kick_17
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: 933f310a969109c409261e68fa3111f2, type: 3}
+    kind: 4
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 2.1333334
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: bb0a066e108b4084c940202f59df3b22:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Kick/kick_18.fbx
+    displayName: kick_18
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: bb0a066e108b4084c940202f59df3b22, type: 3}
+    kind: 4
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 2.5000002
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: 661c49fc24c13bd44a6d614a0d5851a9:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Kick/kick_2.fbx
+    displayName: kick_2
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: 661c49fc24c13bd44a6d614a0d5851a9, type: 3}
+    kind: 4
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 2.1666667
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: d251db74e8a595847bd70b40be1b196d:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Kick/kick_4.fbx
+    displayName: kick_4
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: d251db74e8a595847bd70b40be1b196d, type: 3}
+    kind: 4
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 1.5000001
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: 4b5d262c242c4084b962b56535ba062a:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Kick/kick_5.fbx
+    displayName: kick_5
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: 4b5d262c242c4084b962b56535ba062a, type: 3}
+    kind: 4
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 2.1333334
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: 15cf390774593e444846fba2a24a852f:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Kick/kick_6.fbx
+    displayName: kick_6
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: 15cf390774593e444846fba2a24a852f, type: 3}
+    kind: 4
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 2.266667
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: 85fb663da9c2a5f41834e063de4ed48a:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Kick/kick_7.fbx
+    displayName: kick_7
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: 85fb663da9c2a5f41834e063de4ed48a, type: 3}
+    kind: 4
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 3.4
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: ba31d9abc07b9bc4591073471a80185f:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Kick/kick_8.fbx
+    displayName: kick_8
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: ba31d9abc07b9bc4591073471a80185f, type: 3}
+    kind: 4
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 1.6000001
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: 45e617427d07a0f4b809ca4362415e49:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Kick/kick_9.fbx
+    displayName: kick_9
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: 45e617427d07a0f4b809ca4362415e49, type: 3}
+    kind: 4
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 2.266667
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: 16124e074f5e19041a28d878f34afb35:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Punch/Punch_14.fbx
+    displayName: Punch_14
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: 16124e074f5e19041a28d878f34afb35, type: 3}
+    kind: 3
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 0.86666673
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: 40438b2f8f6921f46bcb920b2f663bc6:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Punch/Punch_15.fbx
+    displayName: Punch_15
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: 40438b2f8f6921f46bcb920b2f663bc6, type: 3}
+    kind: 3
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 1.2666668
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: d7451881c7b8f78488bac2d05c13e2e4:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Punch/Punch_2.fbx
+    displayName: Punch_2
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: d7451881c7b8f78488bac2d05c13e2e4, type: 3}
+    kind: 3
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 2
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: 71d9fe3f1c1e2ba4c96d0993359b2456:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Punch/Punch_3.fbx
+    displayName: Punch_3
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: 71d9fe3f1c1e2ba4c96d0993359b2456, type: 3}
+    kind: 3
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 2.1666667
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: ce3baf7d3f101934cb3191509850b7cf:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Punch/Punch_4.fbx
+    displayName: Punch_4
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: ce3baf7d3f101934cb3191509850b7cf, type: 3}
+    kind: 3
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 1.9000001
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: 50b7e873941f089468d0855b9883266d:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Punch/Punch_6.fbx
+    displayName: Punch_6
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: 50b7e873941f089468d0855b9883266d, type: 3}
+    kind: 3
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 2
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: f7a262050c9cd524590205383c67b28d:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Punch/Punch_7.fbx
+    displayName: Punch_7
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: f7a262050c9cd524590205383c67b28d, type: 3}
+    kind: 3
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 2.4
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: 1d8d98642f04f7f42aca59890bb1ad59:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Punch/Punch_8.fbx
+    displayName: Punch_8
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: 1d8d98642f04f7f42aca59890bb1ad59, type: 3}
+    kind: 3
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 2.266667
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: fd6ca4f48370ebf439679a21312d7bed:-203655887218126122
+    assetPath: Assets/Animations/Attacks/Punch/Punch_9.fbx
+    displayName: Punch_9
+    classificationSource: folder
+    clip: {fileID: -203655887218126122, guid: fd6ca4f48370ebf439679a21312d7bed, type: 3}
+    kind: 3
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 1.3000001
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: a4d695ebe892add47ac31ceaec843b25:-203655887218126122
+    assetPath: Assets/Animations/Neutral/Idle.fbx
+    displayName: Idle
+    classificationSource: name_or_reaction_subfolder
+    clip: {fileID: -203655887218126122, guid: a4d695ebe892add47ac31ceaec843b25, type: 3}
+    kind: 1
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 8.333334
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: 2acdcecb03ea2a643b5c13317eb9b64f:-203655887218126122
+    assetPath: Assets/Animations/Reactions/Block/Block.fbx
+    displayName: Block
+    classificationSource: name_or_reaction_subfolder
+    clip: {fileID: -203655887218126122, guid: 2acdcecb03ea2a643b5c13317eb9b64f, type: 3}
+    kind: 6
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 2.8666668
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: beedce97d575d8241a2367db08e178a5:-203655887218126122
+    assetPath: Assets/Animations/Reactions/Block/Body Block.fbx
+    displayName: Body Block
+    classificationSource: name_or_reaction_subfolder
+    clip: {fileID: -203655887218126122, guid: beedce97d575d8241a2367db08e178a5, type: 3}
+    kind: 6
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 3.4333334
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: a0692129d86f98242bc8804d5dac7641:-203655887218126122
+    assetPath: Assets/Animations/Reactions/Block/Center Block.fbx
+    displayName: Center Block
+    classificationSource: name_or_reaction_subfolder
+    clip: {fileID: -203655887218126122, guid: a0692129d86f98242bc8804d5dac7641, type: 3}
+    kind: 6
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 1.6000001
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: 4a5214e68a7dfbc4db0c345798fe922e:-203655887218126122
+    assetPath: Assets/Animations/Reactions/Fall/Dying Backwards.fbx
+    displayName: Dying Backwards
+    classificationSource: name_or_reaction_subfolder
+    clip: {fileID: -203655887218126122, guid: 4a5214e68a7dfbc4db0c345798fe922e, type: 3}
+    kind: 9
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 4.6000004
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: 3b03de25af0a4c241934e1c8f7626b85:-203655887218126122
+    assetPath: Assets/Animations/Reactions/Fall/Knocked Out.fbx
+    displayName: Knocked Out
+    classificationSource: name_or_reaction_subfolder
+    clip: {fileID: -203655887218126122, guid: 3b03de25af0a4c241934e1c8f7626b85, type: 3}
+    kind: 9
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 4.9333334
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: fe8fbc4b601e184458cf5874f3ee831a:-203655887218126122
+    assetPath: Assets/Animations/Reactions/GetUp/Standing Up.fbx
+    displayName: Standing Up
+    classificationSource: name_or_reaction_subfolder
+    clip: {fileID: -203655887218126122, guid: fe8fbc4b601e184458cf5874f3ee831a, type: 3}
+    kind: 10
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 1.6666667
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: d7497548bc073c0479fb3277f37c47f8:-203655887218126122
+    assetPath: Assets/Animations/Reactions/Stumble/Head Hit(1).fbx
+    displayName: Head Hit(1)
+    classificationSource: name_or_reaction_subfolder
+    clip: {fileID: -203655887218126122, guid: d7497548bc073c0479fb3277f37c47f8, type: 3}
+    kind: 8
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 0.9333334
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: a8d6bc6807bc15c4a8482d36c098c83a:-203655887218126122
+    assetPath: Assets/Animations/Reactions/Stumble/Head Hit(2).fbx
+    displayName: Head Hit(2)
+    classificationSource: name_or_reaction_subfolder
+    clip: {fileID: -203655887218126122, guid: a8d6bc6807bc15c4a8482d36c098c83a, type: 3}
+    kind: 8
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 1.2333333
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: 3861f1e98f1399a4a997bd9f9b55d9ea:-203655887218126122
+    assetPath: Assets/Animations/Reactions/Stumble/Head Hit.fbx
+    displayName: Head Hit
+    classificationSource: name_or_reaction_subfolder
+    clip: {fileID: -203655887218126122, guid: 3861f1e98f1399a4a997bd9f9b55d9ea, type: 3}
+    kind: 8
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 1.4333334
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: 1334dd91d3d22bd4883650d6c8a4795d:-203655887218126122
+    assetPath: Assets/Animations/Reactions/Stumble/Hit To Body(1).fbx
+    displayName: Hit To Body(1)
+    classificationSource: name_or_reaction_subfolder
+    clip: {fileID: -203655887218126122, guid: 1334dd91d3d22bd4883650d6c8a4795d, type: 3}
+    kind: 8
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 1.3333334
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: 5c5bc60af52919d438da31d269d3c76e:-203655887218126122
+    assetPath: Assets/Animations/Reactions/Stumble/Hit To Body(2).fbx
+    displayName: Hit To Body(2)
+    classificationSource: name_or_reaction_subfolder
+    clip: {fileID: -203655887218126122, guid: 5c5bc60af52919d438da31d269d3c76e, type: 3}
+    kind: 8
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 1.3333334
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: 1a4718b3099f61048a61aec3ba472d7e:-203655887218126122
+    assetPath: Assets/Animations/Reactions/Stumble/Hit To Body.fbx
+    displayName: Hit To Body
+    classificationSource: name_or_reaction_subfolder
+    clip: {fileID: -203655887218126122, guid: 1a4718b3099f61048a61aec3ba472d7e, type: 3}
+    kind: 8
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 1.1666667
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: a6eb0db5ef6dbd641891406c7f6a9c83:-203655887218126122
+    assetPath: Assets/Animations/Reactions/Stumble/Medium Hit To Head.fbx
+    displayName: Medium Hit To Head
+    classificationSource: name_or_reaction_subfolder
+    clip: {fileID: -203655887218126122, guid: a6eb0db5ef6dbd641891406c7f6a9c83, type: 3}
+    kind: 8
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 0.9333334
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: d013de2e8e597fd4aa8a85f11eabb9e9:-203655887218126122
+    assetPath: Assets/Animations/Reactions/Stumble/Shoulder Hit And Fall.fbx
+    displayName: Shoulder Hit And Fall
+    classificationSource: name_or_reaction_subfolder
+    clip: {fileID: -203655887218126122, guid: d013de2e8e597fd4aa8a85f11eabb9e9, type: 3}
+    kind: 9
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 1
+    overrideImpact: 0
+    durationSeconds: 3.1000001
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  - key: a1e86435462a8ff4da9dfa35c8b7e1ac:-203655887218126122
+    assetPath: Assets/Animations/Reactions/Stumble/Stomach Hit.fbx
+    displayName: Stomach Hit
+    classificationSource: name_or_reaction_subfolder
+    clip: {fileID: -203655887218126122, guid: a1e86435462a8ff4da9dfa35c8b7e1ac, type: 3}
+    kind: 8
+    enabled: 1
+    manualClassification: 0
+    reviewedFall: 0
+    overrideImpact: 0
+    durationSeconds: 1.2
+    preferredReactionKey: 
+    overrideTargetLandmark: 0
+    targetLandmark: 10
+    impactNormalizedTime: 0.55
+    attackingLimb: 18
+    speedRange: {x: 0.8, y: 1.2}
+    notes: 
+  characters:
+  - {fileID: 919132149155446097, guid: 12d404c2da4d05a4782229a3566f03a7, type: 3}
+  - {fileID: 919132149155446097, guid: 2a5a46edb96454e41923ee9a2c5693d8, type: 3}
+  warnings:
+  - 'Dying Backwards: registered but excluded from automatic scenarios until floor/transition
+    review.'
+  - 'Knocked Out: registered but excluded from automatic scenarios until floor/transition
+    review.'
+  - 'Standing Up: registered but excluded from automatic scenarios until floor/transition
+    review.'
+  - Missing HitReaction; dependent scenarios are skipped or use documented available
+    alternatives.
+  - Missing Dodge; dependent scenarios are skipped or use documented available alternatives.

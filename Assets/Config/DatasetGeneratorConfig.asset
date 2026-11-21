@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ecee2871ed9a64643ae4ca694b449666, type: 3}
+  m_Name: DatasetGeneratorConfig
+  m_EditorClassIdentifier: 
+  catalog: {fileID: 11400000, guid: 676b5bf0c4749a94e9af43ada595fed9, type: 2}
+  outputDirectory: DatasetOutput/Generated
+  scenariosPerCategory: 100
+  seed: 110457582
+  cameraViews: 1
+  width: 1280
+  height: 720
+  fps: 25
+  minimumDurationSeconds: 5
+  generateHit: 1
+  generateKick: 1
+  generateFight: 0
+  generateNormal: 0
+  fightAttackCount: 2
+  allowDefensiveReactions: 0
+  rejectLargeContactError: 1
+  maximumContactError: 0.008
+  speedRange: {x: 0.8, y: 1.2}
+  attackBlendIn: 0.28
+  reactionBlendIn: 0.22
+  blendOut: 0.4
+  roomSize: {x: 8, y: 8}
+  roomHeight: 3.6
+  cameraHeight: {x: 0.25, y: 3.35}
+  cameraFov: {x: 35, y: 90}
+  highCameraWeight: 45
+  overheadCameraWeight: 15
+  wideCameraWeight: 15
+  eyeLevelCameraWeight: 15
+  shoulderCameraWeight: 5
+  lowCameraWeight: 5
+  trainFraction: 0.8
+  validationFraction: 0.1
+  saveInspectionFrames: 1
+  useAsyncGPUReadback: 1
+  exportProjectedBodyJoints: 0
+  exportYoloPose: 1
+  poseJpegQuality: 90
