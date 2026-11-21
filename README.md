@@ -17,9 +17,10 @@
   через меню редактора CLI не требуется.
 
 ```powershell
-git lfs install
-git clone https://github.com/DiaaaP/unity-fight-dataset.git
+git clone --no-checkout https://github.com/DiaaaP/unity-fight-dataset.git
 cd unity-fight-dataset
+git lfs install --local
+git restore --source=HEAD --worktree --staged -- .
 git lfs pull
 ```
 
@@ -27,6 +28,10 @@ git lfs pull
 проект нужной версией Editor. Дождись импорта и компиляции. Если FBX или PNG
 оказываются короткими текстовыми файлами с `git-lfs.github.com/spec/v1`, выполни
 `git lfs pull` перед повторным импортом.
+
+Последовательность с `--no-checkout` также обходит обнаруженный на Git 2.45.1
+сбой `active post-checkout hook found during git clone` при работе с Git LFS.
+Она сохраняет защиту Git от запуска хуков во время клонирования.
 
 В репозитории находятся код, сцены, настройки, FBX, текстуры и соответствующие
 `.meta`. Кэш Unity, локальные инструменты, резервные копии и готовые датасеты
