@@ -39,6 +39,7 @@ namespace FightDataset
         public float reactionStart, reactionSpeed = 1f;
         public int impactFrame;
         public Vector3 contactPoint, targetContactPoint;
+        public float contactSupportGap;
         public Vector3 incomingDirection;
         public bool meshContactVerified;
         public float approachSpeed;

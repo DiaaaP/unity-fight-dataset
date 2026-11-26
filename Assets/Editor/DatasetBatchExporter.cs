@@ -59,6 +59,7 @@ public static partial class DatasetBatchExporter
         public int actor_person_id, target_person_id;
         public string actor, target, clip_key, clip_asset, actor_action, attacking_limb, target_landmark, planned_outcome, outcome;
         public float speed, start_seconds, end_seconds, impact_normalized_time, impact_seconds, contact_error_meters;
+        public float contact_support_gap_meters;
         public string reaction_asset, reaction_kind;
         public bool holds_fallen_pose;
         public bool mesh_contact_verified;
@@ -92,7 +93,7 @@ public static partial class DatasetBatchExporter
         public bool requires_visual_review = true;
         public string skinning = "cpu_baked_once_per_frame_shared_across_views";
         public string view_sync = "all_views_rendered_from_same_pose_before_advancing_time";
-        public string contact_validation = "main_source_stroke_first_knuckle_or_foot_contact_and_visible_reaction_v3";
+        public string contact_validation = "leading_surface_patch_1mm_with_4mm_neighbour_and_visible_reaction_v4";
         public string penetration_validation = DatasetPenetrationGuard.Contract;
         public string motion_sampling = "authored_pose_with_absolute_horizontal_endpoint_carry_v2";
         public string room = "floor_four_walls_and_ceiling";
@@ -271,10 +272,17 @@ public static partial class DatasetBatchExporter
             int frame = submittedFrame;
             float time = frame / (float)config.fps;
             stage.player.SampleAtTime(time);
-            foreach (var action in stage.player.plan.actions.Where(a => a.impactFrame == frame))
+            for (int i = 0; i < stage.player.plan.actions.Count; i++)
             {
-                DatasetContactSolver.Verify(config, stage.player, action);
+                var action = stage.player.plan.actions[i];
+                if (action.impactFrame != frame) continue;
                 DatasetReactionTiming.Verify(config, stage.player, action);
+                DatasetContactSolver.Verify(config, stage.player, action);
+                var recorded = metadata.actions[i];
+                recorded.contact_error_meters = action.contactError;
+                recorded.contact_support_gap_meters = action.contactSupportGap;
+                recorded.attack_contact_point = action.contactPoint;
+                recorded.target_contact_point = action.targetContactPoint;
             }
             foreach (var part in parts) part.Sample();
             penetrationGuard.Verify(frame);

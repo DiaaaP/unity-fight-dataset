@@ -28,7 +28,7 @@ MonoBehaviour:
   fightAttackCount: 2
   allowDefensiveReactions: 0
   rejectLargeContactError: 1
-  maximumContactError: 0.008
+  maximumContactError: 0.001
   speedRange: {x: 0.8, y: 1.2}
   attackBlendIn: 0.28
   reactionBlendIn: 0.22

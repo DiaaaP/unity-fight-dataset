@@ -163,7 +163,7 @@ MonoBehaviour:
     classificationSource: folder
     clip: {fileID: -203655887218126122, guid: bb0a066e108b4084c940202f59df3b22, type: 3}
     kind: 4
-    enabled: 1
+    enabled: 0
     manualClassification: 0
     reviewedFall: 0
     overrideImpact: 0
@@ -235,7 +235,7 @@ MonoBehaviour:
     classificationSource: folder
     clip: {fileID: -203655887218126122, guid: 15cf390774593e444846fba2a24a852f, type: 3}
     kind: 4
-    enabled: 1
+    enabled: 0
     manualClassification: 0
     reviewedFall: 0
     overrideImpact: 0
@@ -253,7 +253,7 @@ MonoBehaviour:
     classificationSource: folder
     clip: {fileID: -203655887218126122, guid: 85fb663da9c2a5f41834e063de4ed48a, type: 3}
     kind: 4
-    enabled: 1
+    enabled: 0
     manualClassification: 0
     reviewedFall: 0
     overrideImpact: 0
@@ -289,7 +289,7 @@ MonoBehaviour:
     classificationSource: folder
     clip: {fileID: -203655887218126122, guid: 45e617427d07a0f4b809ca4362415e49, type: 3}
     kind: 4
-    enabled: 1
+    enabled: 0
     manualClassification: 0
     reviewedFall: 0
     overrideImpact: 0

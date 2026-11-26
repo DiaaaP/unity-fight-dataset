@@ -18,6 +18,28 @@ public sealed class DatasetContactGeometry : IDisposable
         public SkinnedMeshRenderer skin;
         public Mesh baked;
         public int[] triangles;
+        public int[] solidTriangles;
+        public bool[] solidVertices;
+
+        public void CollectSolidSurfaces()
+        {
+            if (solidTriangles != null) return;
+            var mesh = skin.sharedMesh;
+            var materials = skin.sharedMaterials;
+            bool Solid(int submesh)
+            {
+                if (submesh >= materials.Length || !materials[submesh]) return false;
+                var m = materials[submesh];
+                return m.renderQueue < (int)UnityEngine.Rendering.RenderQueue.Transparent && m.GetTag("RenderType", false) != "TransparentCutout" &&
+                    !m.IsKeywordEnabled("_ALPHATEST_ON") && (!m.HasProperty("_AlphaClip") || m.GetFloat("_AlphaClip") < 0.5f);
+            }
+            if (Enumerable.Range(0, mesh.subMeshCount).All(Solid)) { solidTriangles = triangles; return; }
+            // Cutout hair and eyelash cards can extend beyond the visible body.
+            // They are occluders for framing, but cannot prove solid body contact.
+            solidTriangles = Enumerable.Range(0, mesh.subMeshCount).Where(Solid).SelectMany(i => mesh.GetTriangles(i)).ToArray();
+            solidVertices = new bool[mesh.vertexCount];
+            foreach (int index in solidTriangles) solidVertices[index] = true;
+        }
         public BoneWeight[] weights;
         public readonly Dictionary<HumanBodyBones, int[]> limbIndices = new Dictionary<HumanBodyBones, int[]>();
         public readonly Dictionary<HumanBodyBones, int[]> targetTriangles = new Dictionary<HumanBodyBones, int[]>();
@@ -63,10 +85,12 @@ public sealed class DatasetContactGeometry : IDisposable
         {
             if (!part.limbIndices.TryGetValue(limb, out var indices))
             {
+                part.CollectSolidSurfaces();
                 // Palm/proximal knuckles, not a stray fingertip or a sleeve at the wrist.
                 var boneMask = part.skin.bones.Select(b => b && (hand ? b == root || knuckles.Contains(b) : b == root || b.IsChildOf(root))).ToArray();
                 indices = Enumerable.Range(0, part.weights.Length).Where(i =>
                 {
+                    if (part.solidVertices != null && !part.solidVertices[i]) return false;
                     var w = part.weights[i];
                     float sum = (boneMask[w.boneIndex0] ? w.weight0 : 0) + (boneMask[w.boneIndex1] ? w.weight1 : 0) +
                         (boneMask[w.boneIndex2] ? w.weight2 : 0) + (boneMask[w.boneIndex3] ? w.weight3 : 0);
@@ -123,10 +147,12 @@ public sealed class DatasetContactGeometry : IDisposable
         var vertices = part.weights.Select(w =>
             (mask[w.boneIndex0] ? w.weight0 : 0) + (mask[w.boneIndex1] ? w.weight1 : 0) +
             (mask[w.boneIndex2] ? w.weight2 : 0) + (mask[w.boneIndex3] ? w.weight3 : 0) >= 0.4f).ToArray();
+        part.CollectSolidSurfaces();
+        var solid = part.solidTriangles;
         var selected = new List<int>();
-        for (int t = 0; t < part.triangles.Length; t += 3)
+        for (int t = 0; t < solid.Length; t += 3)
         {
-            int a = part.triangles[t], b = part.triangles[t + 1], c = part.triangles[t + 2];
+            int a = solid[t], b = solid[t + 1], c = solid[t + 2];
             if ((vertices[a] ? 1 : 0) + (vertices[b] ? 1 : 0) + (vertices[c] ? 1 : 0) < 2) continue;
             selected.Add(a); selected.Add(b); selected.Add(c);
         }
@@ -134,6 +160,13 @@ public sealed class DatasetContactGeometry : IDisposable
     }
 
     public Contact Measure(Vector3[] limbSurface, HumanBodyBones? region = null)
+        => MeasureCore(limbSurface, region, true);
+
+    // Reuse the last Measure's world-space vertices only for the same pose and region.
+    internal Contact MeasureSamePose(Vector3[] limbSurface, HumanBodyBones region)
+        => MeasureCore(limbSurface, region, false);
+
+    private Contact MeasureCore(Vector3[] limbSurface, HumanBodyBones? region, bool samplePose)
     {
         var searchBounds = new Bounds(limbSurface[0], Vector3.zero);
         foreach (var p in limbSurface) searchBounds.Encapsulate(p);
@@ -152,11 +185,14 @@ public sealed class DatasetContactGeometry : IDisposable
                 triangles = new NativeArray<int>(indices, Allocator.Persistent);
                 part.indices.Add(indices, triangles);
             }
-            part.skin.BakeMesh(part.baked, true);
-            if (!part.positions.IsCreated) part.positions = new NativeArray<Vector3>(part.baked.vertexCount, Allocator.Persistent);
-            using (var data = Mesh.AcquireReadOnlyMeshData(part.baked)) data[0].GetVertices(part.positions);
+            if (samplePose)
+            {
+                part.skin.BakeMesh(part.baked, true);
+                if (!part.positions.IsCreated) part.positions = new NativeArray<Vector3>(part.baked.vertexCount, Allocator.Persistent);
+                using (var data = Mesh.AcquireReadOnlyMeshData(part.baked)) data[0].GetVertices(part.positions);
+            }
             new FindContact { vertices = part.positions, triangles = triangles, patch = patch,
-                matrix = part.skin.transform.localToWorldMatrix, low = searchBounds.min, high = searchBounds.max,
+                transformVertices = samplePose, matrix = part.skin.transform.localToWorldMatrix, low = searchBounds.min, high = searchBounds.max,
                 patchLow = patchLow, patchHigh = patchHigh, closest = closest }.Run();
         }
         var result = closest[0];
@@ -172,11 +208,13 @@ public sealed class DatasetContactGeometry : IDisposable
         [ReadOnly] public NativeArray<Vector3> patch;
         public NativeArray<Contact> closest;
         public Matrix4x4 matrix;
+        public bool transformVertices;
         public Vector3 low, high, patchLow, patchHigh;
 
         public void Execute()
         {
-            for (int i = 0; i < vertices.Length; i++) vertices[i] = matrix.MultiplyPoint3x4(vertices[i]);
+            if (transformVertices)
+                for (int i = 0; i < vertices.Length; i++) vertices[i] = matrix.MultiplyPoint3x4(vertices[i]);
             var best = closest[0];
             for (int t = 0; t < triangles.Length; t += 3)
             {

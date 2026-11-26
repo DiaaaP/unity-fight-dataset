@@ -15,7 +15,23 @@ public static class DatasetContactSolver
         public float approach;
     }
 
-    public static float Tolerance(DatasetGeneratorConfig config) => Mathf.Clamp(config.maximumContactError, 0.002f, 0.01f);
+    public static float Tolerance(DatasetGeneratorConfig config) => Mathf.Clamp(config.maximumContactError, 0.00025f, 0.001f);
+
+    // An isolated shoe tip or knuckle vertex can graze the target. Check
+    // a second, nearby pair of points on the same two posed surfaces.
+    private static bool HasContactPatch(DatasetContactGeometry target, HumanBodyBones region,
+        Vector3[] surface, DatasetContactGeometry.Contact first, out float supportGap)
+    {
+        const float minimumSpan = 0.012f;
+        const float radius = 0.045f;
+        var neighbours = surface.Where(p => (p - first.attack).sqrMagnitude >= minimumSpan * minimumSpan &&
+            (p - first.attack).sqrMagnitude <= radius * radius).ToArray();
+        supportGap = float.PositiveInfinity;
+        if (neighbours.Length == 0) return false;
+        var second = target.MeasureSamePose(neighbours, region);
+        supportGap = second.gap;
+        return supportGap <= 0.004f && (second.target - first.target).sqrMagnitude >= 0.008f * 0.008f;
+    }
 
     public static Vector3 LimbPoint(Animator actor, HumanBodyBones limb)
     {
@@ -152,16 +168,26 @@ public static class DatasetContactSolver
                 // Start separated and approach the limb. Unsigned nearest distance
                 // is also zero when the knuckles are already buried in the body.
                 Vector3 separated = candidate.position + player.transform.InverseTransformVector(incoming * 0.3f);
-                player.SetActorLocalPosition(action.target, reposition ? separated : candidate.position);
+                Vector3 anchor = reposition ? separated : candidate.position;
+                player.SetActorLocalPosition(action.target, anchor);
+                float time = candidate.frame / (float)config.fps;
+                player.SampleAtTime(time);
+                var surface = attackMesh.LimbSurface(candidate.limb, candidate.velocity);
+                var relativeSurface = new Vector3[surface.Length];
+                var contact = targetMesh.Measure(surface, candidate.target);
                 float travelled = 0;
-                for (int refine = 0; refine < (reposition ? 20 : 1); refine++)
+                for (int refine = 0; refine < (reposition ? 32 : 1); refine++)
                 {
                     yield return "Aligning " + entry.displayName;
-                    player.SampleAtTime(candidate.frame / (float)config.fps);
-                    var contact = targetMesh.Measure(attackMesh.LimbSurface(candidate.limb, candidate.velocity), candidate.target);
                     minimumGap = Mathf.Min(minimumGap, contact.gap);
                     if (contact.gap <= Tolerance(config))
                     {
+                        // Apply the proposed translation and verify the actual posed meshes.
+                        player.SetActorLocalPosition(action.target, anchor - player.transform.InverseTransformVector(incoming * travelled));
+                        player.SampleAtTime(time);
+                        contact = targetMesh.Measure(surface, candidate.target);
+                        if (!(contact.gap <= Tolerance(config)) ||
+                            !HasContactPatch(targetMesh, candidate.target, surface, contact, out _)) break;
                         if (!SafeStance(player, action) || penetration.Measure(true).samples > 0) { unsafeRefines++; break; }
                         action.limb = candidate.limb; action.targetLandmark = candidate.target;
                         action.impactFrame = candidate.frame; action.impactTime = candidate.frame / (float)config.fps;
@@ -179,7 +205,11 @@ public static class DatasetContactSolver
                     float step = Mathf.Min(0.12f, contact.gap * 0.85f);
                     travelled += step;
                     if (travelled > 0.55f || incoming.sqrMagnitude < 0.1f) break;
-                    player.SetActorLocalPosition(action.target, player.GetActorLocalPosition(action.target) - player.transform.InverseTransformVector(incoming * step));
+                    // Relative motion is a pure horizontal translation at this fixed frame.
+                    // Query in the original target pose without re-skinning either actor.
+                    Vector3 offset = incoming * travelled;
+                    for (int i = 0; i < surface.Length; i++) relativeSurface[i] = surface[i] + offset;
+                    contact = targetMesh.MeasureSamePose(relativeSurface, candidate.target);
                 }
             }
         }
@@ -211,8 +241,9 @@ public static class DatasetContactSolver
             Vector3 previous = LimbPoint(player.actors[action.actor], action.limb);
             player.SampleAtTime(time);
             Vector3 velocity = (point - previous) / (time - previousTime);
-            contact = targetMesh.Measure(attackMesh.LimbSurface(action.limb, velocity), action.targetLandmark);
-            if (contact.gap > Tolerance(config)) continue;
+            var surface = attackMesh.LimbSurface(action.limb, velocity);
+            contact = targetMesh.Measure(surface, action.targetLandmark);
+            if (!(contact.gap <= Tolerance(config)) || !HasContactPatch(targetMesh, action.targetLandmark, surface, contact, out _)) continue;
             action.impactFrame = frame; action.impactTime = time; action.impactNormalizedTime = source / action.clip.length;
             action.contactError = contact.gap; action.contactPoint = contact.attack; action.targetContactPoint = contact.target;
             action.incomingDirection = velocity.normalized;
@@ -240,13 +271,19 @@ public static class DatasetContactSolver
             Vector3 previous = LimbPoint(player.actors[action.actor], action.limb);
             player.SampleAtTime(action.impactTime);
             Vector3 velocity = (point - previous) / (action.impactTime - before);
-            var result = b.Measure(a.LimbSurface(action.limb, velocity), action.targetLandmark);
-            if (result.gap > Tolerance(config)) throw new InvalidOperationException("Leading knuckle/foot patch misses the target mesh: " + result.gap.ToString("F3") + " m, " + action.assetPath);
+            var surface = a.LimbSurface(action.limb, velocity);
+            var result = b.Measure(surface, action.targetLandmark);
+            if (!(result.gap <= Tolerance(config)) || !HasContactPatch(b, action.targetLandmark, surface, result, out float supportGap))
+                throw new InvalidOperationException("No supported knuckle/foot contact patch on target mesh: " + result.gap.ToString("F4") + " m, " + action.assetPath);
             float approach = Vector3.Dot(velocity, (center - point).normalized);
             if (float.IsNaN(approach) || float.IsInfinity(approach) || approach < 0.12f)
                 throw new InvalidOperationException("Contact is on recovery/idle rather than the incoming strike: " + action.assetPath);
             action.approachSpeed = approach;
             action.incomingDirection = velocity.normalized;
+            action.contactError = result.gap;
+            action.contactPoint = result.attack;
+            action.targetContactPoint = result.target;
+            action.contactSupportGap = supportGap;
             return result;
         }
     }

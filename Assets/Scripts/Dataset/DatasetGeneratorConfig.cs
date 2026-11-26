@@ -21,7 +21,7 @@ namespace FightDataset
         [Range(2, 4)] public int fightAttackCount = 2;
         [HideInInspector] public bool allowDefensiveReactions;
         [HideInInspector] public bool rejectLargeContactError = true;
-        [Range(0.002f, 0.01f)] public float maximumContactError = 0.008f;
+        [Range(0.00025f, 0.001f)] public float maximumContactError = 0.001f;
         public Vector2 speedRange = new Vector2(0.8f, 1.2f);
         public float attackBlendIn = 0.28f, reactionBlendIn = 0.22f, blendOut = 0.4f;
         public Vector2 roomSize = new Vector2(8f, 8f);
