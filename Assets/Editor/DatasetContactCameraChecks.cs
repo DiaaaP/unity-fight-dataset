@@ -282,7 +282,15 @@ public static class DatasetContactCameraChecks
             foreach (var camera in cameras)
             {
                 camera.Apply(stage.camera);
-                foreach (var actor in stage.player.actors)
+                if (camera.allowsPartialBody)
+                {
+                    foreach (var actor in stage.player.actors)
+                        if (!DatasetCameraPlanner.PartialPointsSafe(stage.camera, new[] { HumanBodyBones.Head, HumanBodyBones.Hips, HumanBodyBones.Chest,
+                            HumanBodyBones.LeftHand, HumanBodyBones.RightHand, HumanBodyBones.LeftFoot, HumanBodyBones.RightFoot,
+                            HumanBodyBones.LeftLowerArm, HumanBodyBones.RightLowerArm, HumanBodyBones.LeftLowerLeg, HumanBodyBones.RightLowerLeg }
+                            .Select(b => actor.GetBoneTransform(b).position).ToArray(), camera.minimumBodyCoverage)) throw new Exception("Partial camera loses a character.");
+                }
+                else foreach (var actor in stage.player.actors)
                     foreach (var bone in new[] { HumanBodyBones.Head, HumanBodyBones.LeftHand, HumanBodyBones.RightHand, HumanBodyBones.LeftFoot, HumanBodyBones.RightFoot })
                         if (!FightDataset.Prototype.FightScenarioRandomizer.Inside(stage.camera, actor.GetBoneTransform(bone).position, 0.02f))
                             throw new Exception("Camera clips a character: " + camera.profile);
@@ -292,7 +300,7 @@ public static class DatasetContactCameraChecks
         foreach (var camera in cameras)
         {
             camera.Apply(stage.camera);
-            if (!DatasetCameraPlanner.ContactsVisible(stage)) throw new Exception("Camera obscures contact.");
+            if (!DatasetCameraPlanner.ContactsVisible(stage, camera.occlusionChallenge)) throw new Exception("Camera obscures contact.");
         }
     }
 

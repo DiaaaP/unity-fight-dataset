@@ -4,12 +4,15 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using FightDataset;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 
 // Geometric visibility against the SAME baked meshes that produce the RGB frame.
 // A joint lies inside the skin: its own anatomical surface is allowed, whereas a
 // different limb, another actor or room geometry in front of it is an occluder.
-public sealed class DatasetYoloPose
+public sealed class DatasetYoloPose : IDisposable
 {
     public const string Contract = "coco17_mesh_raycast_anatomical_surface_v1";
     public static readonly string[] Names = { "nose", "left_eye", "right_eye", "left_ear", "right_ear",
@@ -30,14 +33,19 @@ public sealed class DatasetYoloPose
     private readonly Surface[] faces;
     private readonly Surface[][] facialSurfaces;
     private readonly int[][] facialVertices;
+    private readonly float[] actorThicknessScale;
     public readonly FaceAnchor[] faceAnchors;
+    public int LastOtherPersonOccludedBodyPoints { get; private set; }
 
-    public DatasetYoloPose(DatasetSceneFactory.Stage stage)
+    public DatasetYoloPose(DatasetSceneFactory.Stage stage, bool reviewFaceProfiles = false)
     {
         player = stage.player;
+        actorThicknessScale = stage.standingHeights?.Select(h => h / 1.8f).ToArray() ?? Enumerable.Repeat(1f, player.actors.Length).ToArray();
         faces = new Surface[player.actors.Length]; facialVertices = new int[player.actors.Length][];
         facialSurfaces = new Surface[player.actors.Length][];
         var anchors = new List<FaceAnchor>();
+        try
+        {
         for (int a = 0; a < player.actors.Length; a++)
         {
             var actor = player.actors[a];
@@ -58,10 +66,19 @@ public sealed class DatasetYoloPose
             {
                 var bone = actor.GetBoneTransform(Bones[k]);
                 if (eyes == null || !bone) continue;
-                Vector3 cornea = bone.position + forward * .012f;
+                Vector3 cornea = bone.position + forward * (.012f * actorThicknessScale[a]);
                 facialSurfaces[a][k] = eyes;
                 facialVertices[a][k] = Enumerable.Range(0, eyes.vertices.Length).OrderBy(i => (eyes.vertices[i] - cornea).sqrMagnitude).First();
             }
+            var reviewed = reviewFaceProfiles ? null : DatasetFaceLandmarks.Find(stage.modelPaths[a]);
+            if (reviewed != null)
+                foreach (var point in reviewed.points)
+                {
+                    var surface = surfaces.FirstOrDefault(s => s.actor == a && s.name == point.mesh);
+                    if (surface == null || point.vertex < 0 || point.vertex >= surface.vertices.Length || point.keypoint < 0 || point.keypoint >= 5)
+                        throw new InvalidOperationException("Invalid face landmark profile: " + stage.modelPaths[a]);
+                    facialSurfaces[a][point.keypoint] = surface; facialVertices[a][point.keypoint] = point.vertex;
+                }
             for (int k = 0; k < 5; k++) anchors.Add(new FaceAnchor { actor = a, keypoint = k, vertex = facialVertices[a][k], mesh = facialSurfaces[a][k].name });
         }
         foreach (var filter in stage.root.GetComponentsInChildren<MeshFilter>())
@@ -71,6 +88,8 @@ public sealed class DatasetYoloPose
                 surfaces.Add(new Surface(filter.sharedMesh, filter.transform, renderer, -1, null));
         }
         faceAnchors = anchors.ToArray();
+        }
+        catch { Dispose(); throw; }
     }
     public void Bind(SkinnedMeshRenderer source, Mesh baked)
     {
@@ -82,6 +101,7 @@ public sealed class DatasetYoloPose
     {
         foreach (var surface in surfaces) if (surface.skin) surface.Update();
     }
+    public void Dispose() { foreach(var surface in surfaces) surface.Dispose(); }
     public Vector3 Point(int actor, int keypoint)
     {
         if (keypoint < 5) return facialSurfaces[actor][keypoint].vertices[facialVertices[actor][keypoint]];
@@ -89,20 +109,25 @@ public sealed class DatasetYoloPose
         if (!bone) throw new InvalidOperationException("Pose bone is missing: " + Bones[keypoint]);
         return bone.position;
     }
+
+    public FaceAnchor PickFaceAnchor(Camera camera, int actor, int keypoint, Vector2 topLeftImagePoint)
+    {
+        var surface = keypoint == 1 || keypoint == 2 ? facialSurfaces[actor][keypoint] : faces[actor];
+        int vertex = surface.NearestFaceVertex(camera, new Vector2(topLeftImagePoint.x, 1 - topLeftImagePoint.y));
+        return new FaceAnchor { actor = 0, keypoint = keypoint, mesh = surface.name, vertex = vertex };
+    }
     public string Labels(Camera camera)
     {
+        LastOtherPersonOccludedBodyPoints = 0;
+        var worldToView=camera.worldToCameraMatrix;var projection=camera.projectionMatrix;
+        float near = camera.nearClipPlane, far = camera.farClipPlane;
         var text = new StringBuilder();
         for (int actor = 0; actor < player.actors.Length; actor++)
         {
             // Tight projected bounds of the deformed body, clipped to the image.
             Vector2 low = Vector2.one * float.PositiveInfinity, high = Vector2.one * float.NegativeInfinity;
             foreach (var surface in surfaces.Where(s => s.actor == actor))
-                foreach (Vector3 world in surface.vertices)
-                {
-                    Vector3 p = camera.WorldToViewportPoint(world);
-                    if (p.z < camera.nearClipPlane || p.z > camera.farClipPlane) continue;
-                    low = Vector2.Min(low, new Vector2(p.x, 1 - p.y)); high = Vector2.Max(high, new Vector2(p.x, 1 - p.y));
-                }
+                surface.ProjectBounds(camera, worldToView, projection, near, far, ref low, ref high);
             low = Vector2.Max(Vector2.zero, low); high = Vector2.Min(Vector2.one, high);
             if (high.x <= low.x || high.y <= low.y) continue;
             text.Append('0'); Add(text, (low.x + high.x) / 2); Add(text, (low.y + high.y) / 2);
@@ -112,7 +137,9 @@ public sealed class DatasetYoloPose
                 Vector3 world = Point(actor, k), p = camera.WorldToViewportPoint(world);
                 if (!InFrame(camera, p)) { text.Append(" 0.0 0.0 0"); continue; }
                 Add(text, p.x); Add(text, 1 - p.y);
-                text.Append(' ').Append(Visible(camera, actor, k, world) ? '2' : '1');
+                bool visible = Visible(camera, actor, k, world, out int blocker);
+                if (k >= 5 && blocker >= 0 && blocker != actor) LastOtherPersonOccludedBodyPoints++;
+                text.Append(' ').Append(visible ? '2' : '1');
             }
             text.Append('\n');
         }
@@ -123,7 +150,11 @@ public sealed class DatasetYoloPose
     private static void Add(StringBuilder text, float value) => text.Append(' ').Append(Mathf.Clamp01(value).ToString("0.000000", CultureInfo.InvariantCulture));
 
     public bool Visible(Camera camera, int actor, int keypoint, Vector3 point)
+        => Visible(camera, actor, keypoint, point, out _);
+
+    private bool Visible(Camera camera, int actor, int keypoint, Vector3 point, out int occludingActor)
     {
+        occludingActor = -1;
         // Avoid a world->viewport->world round trip: float matrix inversion at
         // the room's world offset displaced rays across tiny eyelash triangles.
         Ray ray = LandmarkRay(camera, point, out float minimum);
@@ -133,10 +164,10 @@ public sealed class DatasetYoloPose
         foreach (var surface in surfaces)
             if (surface.Enabled(camera) && surface.Cast(ray, ref distance, out int t, out Vector3 b, minimum)) { first = surface; triangle = t; bary = b; }
         if (first == null) return true;
-        if (first.actor != actor) return false;
+        if (first.actor != actor) { occludingActor = first.actor; return false; }
         if (keypoint < 5) return endpoint - distance <= 0.001f;
         float clearance = keypoint <= 6 ? 0.16f : keypoint <= 8 ? 0.11f : keypoint <= 10 ? 0.085f : keypoint <= 12 ? 0.19f : keypoint <= 14 ? 0.12f : 0.09f;
-        return endpoint - distance <= clearance && first.RegionWeight(triangle, bary, keypoint) >= 0.2f;
+        return endpoint - distance <= clearance * actorThicknessScale[actor] && first.RegionWeight(triangle, bary, keypoint) >= 0.2f;
     }
 
     private static Ray LandmarkRay(Camera camera, Vector3 point, out float minimum)
@@ -208,6 +239,63 @@ public sealed class DatasetYoloPose
         private readonly BoneWeight[] weights;
         private readonly uint[] boneRegions;
         private readonly List<Node> nodes = new List<Node>();
+        private readonly DatasetPenetrationBurst accelerated;
+        private NativeList<int> boundaryCandidates;
+
+        public void ProjectBounds(Camera camera, Matrix4x4 view, Matrix4x4 projection, float near, float far,
+            ref Vector2 low, ref Vector2 high)
+        {
+            if (accelerated == null)
+            {
+                foreach (var world in vertices) IncludeProjection(camera, world, near, far, ref low, ref high);
+                return;
+            }
+            // Seed a box from real Unity projections. A mesh vertex clearly inside
+            // that box cannot become an extremum when we project the other vertices.
+            int stride = Mathf.Max(1, vertices.Length / 64);
+            for (int i = 0; i < vertices.Length; i += stride)
+                IncludeProjection(camera, vertices[i], near, far, ref low, ref high);
+
+            if (!boundaryCandidates.IsCreated) boundaryCandidates = new NativeList<int>(vertices.Length, Allocator.Persistent);
+            boundaryCandidates.Clear();
+            new FindBoundaryCandidates { positions = accelerated.WorldPositions, view = view, projection = projection,
+                far = far, low = low, high = high, candidates = boundaryCandidates }.Run();
+            for (int i = 0; i < boundaryCandidates.Length; i++)
+                IncludeProjection(camera, vertices[boundaryCandidates[i]], near, far, ref low, ref high);
+        }
+
+        private static void IncludeProjection(Camera camera, Vector3 world, float near, float far, ref Vector2 low, ref Vector2 high)
+        {
+            var p = camera.WorldToViewportPoint(world);
+            if (p.z < near || p.z > far) return;
+            var xy = new Vector2(p.x, 1 - p.y);
+            low = Vector2.Min(low, xy);
+            high = Vector2.Max(high, xy);
+        }
+
+        [BurstCompile(CompileSynchronously = true, FloatMode = FloatMode.Strict)]
+        private struct FindBoundaryCandidates : IJob
+        {
+            [ReadOnly] public NativeArray<Vector3>.ReadOnly positions;
+            public Matrix4x4 view, projection;
+            public float far;
+            public Vector2 low, high;
+            public NativeList<int> candidates;
+
+            public void Execute()
+            {
+                for (int i = 0; i < positions.Length; i++)
+                {
+                    var v = view.MultiplyPoint3x4(positions[i]);
+                    var clip = projection * new Vector4(v.x, v.y, v.z, 1);
+                    float x = (clip.x / clip.w + 1) * .5f, y = (clip.y / clip.w + 1) * .5f;
+                    float margin = .002f * (1 + Mathf.Abs(x) + Mathf.Abs(y));
+                    if (-v.z > 1.5f && Mathf.Abs(-v.z - far) > .001f &&
+                        x > low.x + margin && x < high.x - margin && 1-y > low.y + margin && 1-y < high.y - margin) continue;
+                    candidates.AddNoResize(i);
+                }
+            }
+        }
 
         public Surface(SkinnedMeshRenderer skin, int actor, Animator animator) : this(skin.sharedMesh, skin.transform, skin, actor, animator)
         { this.skin = skin; }
@@ -227,15 +315,16 @@ public sealed class DatasetYoloPose
             if (animator)
             {
                 var skinned = (SkinnedMeshRenderer)renderer;
-                boneRegions = skinned.bones.Select(b => RegionMask(animator, b)).ToArray();
+                var skinBones = skinned.bones;
+                boneRegions = skinBones.Select(b => RegionMask(animator, b)).ToArray();
                 var head = animator.GetBoneTransform(HumanBodyBones.Head);
+                var headBones = skinBones.Select(b => b && (b == head || b.IsChildOf(head))).ToArray();
                 for (int i = 0; i < weights.Length; i++)
                 {
                     var w = weights[i];
                     headWeights[i] = Head(w.boneIndex0, w.weight0) + Head(w.boneIndex1, w.weight1) + Head(w.boneIndex2, w.weight2) + Head(w.boneIndex3, w.weight3);
                 }
-                float Head(int index, float weight) => index >= 0 && index < skinned.bones.Length && skinned.bones[index] &&
-                    (skinned.bones[index] == head || skinned.bones[index].IsChildOf(head)) ? weight : 0;
+                float Head(int index, float weight) => index >= 0 && index < headBones.Length && headBones[index] ? weight : 0;
                 var probe = new Mesh();
                 try { skinned.BakeMesh(probe, true); vertices = probe.vertices; }
                 finally { UnityEngine.Object.DestroyImmediate(probe); }
@@ -244,13 +333,37 @@ public sealed class DatasetYoloPose
             ToWorld();
             var bounds = order.Select(TriangleBounds).ToArray(); var centers = bounds.Select(b => b.center).ToArray();
             if (order.Length > 0) Build(0, order.Length, bounds, centers);
+            if(animator && order.Length>0) accelerated=new DatasetPenetrationBurst(vertices,triangles,order,nodes.Select(n=>new DatasetPenetrationBurst.Node {
+                start=n.start,count=n.count,left=n.left,right=n.right }).ToArray(),Array.Empty<int>());
         }
         public bool Enabled(Camera camera) => renderer && renderer.gameObject.activeInHierarchy &&
             (camera.cullingMask & (1 << renderer.gameObject.layer)) != 0;
+        public int NearestFaceVertex(Camera camera, Vector2 viewport)
+        {
+            Ray ray = camera.ViewportPointToRay(viewport); float distance = camera.farClipPlane;
+            if (Cast(ray, ref distance, out int triangle, out Vector3 bary))
+            {
+                int t = triangle * 3;
+                int[] options = { triangles[t], triangles[t + 1], triangles[t + 2] };
+                return options.OrderBy(i => ((Vector2)camera.WorldToViewportPoint(vertices[i]) - viewport).sqrMagnitude).First();
+            }
+            // Ears can lie on a silhouette. Choose the closest projected front
+            // head vertex rather than assigning a hair card or clothing point.
+            var head = Enumerable.Range(0, vertices.Length).Where(i => headWeights[i] >= .75f && camera.WorldToViewportPoint(vertices[i]).z > 0).ToArray();
+            if (head.Length == 0) throw new InvalidOperationException("No head surface near the requested facial landmark.");
+            return head.OrderBy(i => ((Vector2)camera.WorldToViewportPoint(vertices[i]) - viewport).sqrMagnitude + camera.WorldToViewportPoint(vertices[i]).z * .00001f).First();
+        }
         public void Update()
         {
             if (!baked || baked.vertexCount != source.vertexCount) throw new InvalidOperationException("YOLO pose was not bound to the rendered mesh.");
-            vertices = baked.vertices; ToWorld(); Refit(0);
+            if (accelerated == null) { vertices = baked.vertices; ToWorld(); return; }
+            accelerated.UpdateFromMesh(baked, transform.localToWorldMatrix, vertices);
+
+        }
+        public void Dispose()
+        {
+            if (boundaryCandidates.IsCreated) boundaryCandidates.Dispose();
+            accelerated?.Dispose();
         }
         private void ToWorld()
         {
@@ -290,7 +403,9 @@ public sealed class DatasetYoloPose
         }
         private void Intersect(int index, Ray ray, ref float distance, ref int triangle, ref Vector3 bary, float minimum)
         {
-            var n = nodes[index]; if (!n.bounds.IntersectRay(ray, out float near) || near > distance) return;
+            var n = nodes[index];
+            var bounds = accelerated == null ? n.bounds : accelerated.BoundsAt(index);
+            if (!bounds.IntersectRay(ray, out float near) || near > distance) return;
             if (n.left >= 0) { Intersect(n.left, ray, ref distance, ref triangle, ref bary, minimum); Intersect(n.right, ray, ref distance, ref triangle, ref bary, minimum); return; }
             for (int i = n.start; i < n.start + n.count; i++)
             {
@@ -340,6 +455,8 @@ public sealed class DatasetYoloPose
 
     private sealed class MaterialInfo
     {
+        private static readonly Dictionary<string,Color32[]> AlphaCache=new Dictionary<string,Color32[]>();
+        private static long cachedPixels;
         public readonly int cull;
         public readonly Color32[] alpha;
         private readonly int width, height;
@@ -358,11 +475,19 @@ public sealed class DatasetYoloPose
             scale = m.mainTextureScale; offset = m.mainTextureOffset;
             if (!texture) { width = height = 1; alpha = new[] { new Color32(255, 255, 255, 255) }; return; }
             width = texture.width; height = texture.height; wrap = texture.wrapMode;
+            string assetPath=UnityEditor.AssetDatabase.GetAssetPath(texture);
+            string cacheKey=texture.GetInstanceID()+":"+width+":"+height+":"+(string.IsNullOrEmpty(assetPath)?"transient":UnityEditor.AssetDatabase.GetAssetDependencyHash(assetPath).ToString());
+            if(!string.IsNullOrEmpty(assetPath)&&AlphaCache.TryGetValue(cacheKey,out var cached)){alpha=cached;return;}
             var target = RenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
             var copy = new Texture2D(width, height, TextureFormat.RGBA32, false, true);
             var previous = RenderTexture.active;
             try { Graphics.Blit(texture, target); RenderTexture.active = target; copy.ReadPixels(new Rect(0, 0, width, height), 0, 0); alpha = copy.GetPixels32(); }
             finally { RenderTexture.active = previous; RenderTexture.ReleaseTemporary(target); UnityEngine.Object.DestroyImmediate(copy); }
+            if(!string.IsNullOrEmpty(assetPath))
+            {
+                if(cachedPixels+alpha.Length>32L*1024*1024){AlphaCache.Clear();cachedPixels=0;}
+                AlphaCache[cacheKey]=alpha;cachedPixels+=alpha.Length;
+            }
         }
         public bool Opaque(Vector2 uv)
         {

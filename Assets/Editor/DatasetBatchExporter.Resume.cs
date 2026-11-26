@@ -9,6 +9,8 @@ using UnityEngine;
 
 public static partial class DatasetBatchExporter
 {
+    // A freshly allocated scenario index has no partial files. Only resume can revisit one.
+    private static bool checkInterruptedFiles;
     private static DatasetBatchCheckpoint checkpoint;
     private static AnimationCatalog ownedCatalog;
     private static double elapsedRecorded, timingStarted = -1;
@@ -136,6 +138,7 @@ public static partial class DatasetBatchExporter
         CurrentFrame = 0;
         elapsedRecorded = checkpoint.elapsed_seconds;
         timingStarted = EditorApplication.timeSinceStartup;
+        checkInterruptedFiles = true;
         RememberBatch(directory);
         InitializeAnimationUsage();
         IsRunning = true;

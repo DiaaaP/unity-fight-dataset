@@ -752,6 +752,23 @@ MonoBehaviour:
     speedRange: {x: 0.8, y: 1.2}
     notes: 
   characters:
+  - {fileID: 919132149155446097, guid: 3cd3184b7da856448856366a2f6cb181, type: 3}
+  - {fileID: 919132149155446097, guid: 3daf042c25f9dbf4ab749112c76807ed, type: 3}
+  - {fileID: 919132149155446097, guid: bdd81b513a9bc364dac7504103343e4f, type: 3}
+  - {fileID: 919132149155446097, guid: 70b185c36a265b14994b32043a676e7b, type: 3}
+  - {fileID: 919132149155446097, guid: 5fc95d30cb437fa4eb2e2d6f7f2b7aca, type: 3}
+  - {fileID: 919132149155446097, guid: 25a4916c392c0c347a70992c6b8f1525, type: 3}
+  - {fileID: 919132149155446097, guid: e500bccc623940043bcc7dc39cdb6aad, type: 3}
+  - {fileID: 919132149155446097, guid: ebc8af18300be8842b66b9dc53c6b3da, type: 3}
+  - {fileID: 919132149155446097, guid: dcd52ce8cf26c5941b4a7cf586ad825e, type: 3}
+  - {fileID: 919132149155446097, guid: 53e66bead051d71408ea082ad3853933, type: 3}
+  - {fileID: 919132149155446097, guid: 21e2beb49ef217947aa0e2192aa2a329, type: 3}
+  - {fileID: 919132149155446097, guid: f2c4c9f67d4c95949a4905d9c3573c47, type: 3}
+  - {fileID: 919132149155446097, guid: 85e17511ef344f941af0336bc9a87a9f, type: 3}
+  - {fileID: 919132149155446097, guid: 41d9090dd483b3d43992851fdf6c375b, type: 3}
+  - {fileID: 919132149155446097, guid: c5bd99d0112c9cc488ec047e6b847f90, type: 3}
+  - {fileID: 919132149155446097, guid: a49509e9e08c9ef4e88542bd8303ffb9, type: 3}
+  - {fileID: 919132149155446097, guid: 76a2175bb8f534b4a9067c2ddb31e30b, type: 3}
   - {fileID: 919132149155446097, guid: 12d404c2da4d05a4782229a3566f03a7, type: 3}
   - {fileID: 919132149155446097, guid: 2a5a46edb96454e41923ee9a2c5693d8, type: 3}
   warnings:

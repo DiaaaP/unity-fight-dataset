@@ -26,7 +26,7 @@ public static class DatasetYoloPoseChecks
             blocker.name = "Visibility probe"; blocker.transform.SetParent(stage.root.transform, false);
             blocker.transform.localPosition = new Vector3(0, 1.2f, 1.5f);
             blocker.transform.localScale = new Vector3(6, 4, .15f);
-            var pose = new DatasetYoloPose(stage);
+            using var pose = new DatasetYoloPose(stage);
             blocker.SetActive(false);
             foreach (var actor in stage.player.actors)
                 foreach (var skin in actor.GetComponentsInChildren<SkinnedMeshRenderer>())
@@ -128,10 +128,10 @@ public static class DatasetYoloPoseChecks
             texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
             texture.SetPixels(Enumerable.Repeat(Color.clear, 4).ToArray()); texture.Apply(); material.mainTexture = texture;
             cube.GetComponent<Renderer>().sharedMaterial = material;
-            var transparent = new DatasetYoloPose(stage);
+            using var transparent = new DatasetYoloPose(stage);
             if (!transparent.Visible(stage.camera, 0, 0, transparent.Point(0, 0))) throw new Exception("Alpha-cutout hole incorrectly occludes nose.");
             texture.SetPixels(Enumerable.Repeat(Color.white, 4).ToArray()); texture.Apply();
-            var opaque = new DatasetYoloPose(stage);
+            using var opaque = new DatasetYoloPose(stage);
             if (opaque.Visible(stage.camera, 0, 0, opaque.Point(0, 0))) throw new Exception("Opaque alpha-cutout texel was ignored.");
             File.WriteAllText(Root + "/alpha_check.json", "{\"transparent_hole_visible\":true,\"opaque_texel_occluded\":true}");
             return "alpha cutout passed";
@@ -152,7 +152,7 @@ public static class DatasetYoloPoseChecks
         var scene = EditorSceneManager.NewPreviewScene(); var meshes = new System.Collections.Generic.List<Mesh>();
         try
         {
-            var stage = DatasetSceneFactory.Create(c, scene, c.seed); var pose = new DatasetYoloPose(stage);
+            var stage = DatasetSceneFactory.Create(c, scene, c.seed); using var pose = new DatasetYoloPose(stage);
             stage.player.plan = DatasetScenarioPlanner.Create(c, stage, "hit", c.seed);
             var views = DatasetScenarioPlanner.Cameras(c, stage, c.seed);
             var skins = stage.player.actors.SelectMany(a => a.GetComponentsInChildren<SkinnedMeshRenderer>()).ToArray();

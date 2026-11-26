@@ -43,6 +43,8 @@ public static partial class DatasetBatchExporter
     private static Metadata metadata;
     private static Summary summary;
     private static readonly Dictionary<string, int> animationUsage = new Dictionary<string, int>();
+    private static System.Diagnostics.Stopwatch preparationClock,frameExportClock;
+    [Serializable] public sealed class Timing { public double preparation_seconds,frame_export_seconds,finalization_seconds; }
     private static readonly Action signalEditorTick = BindEditorTick();
 
     private static Action BindEditorTick()
@@ -54,6 +56,7 @@ public static partial class DatasetBatchExporter
 
     [Serializable] public sealed class ActionMetadata
     {
+        public int actor_person_id, target_person_id;
         public string actor, target, clip_key, clip_asset, actor_action, attacking_limb, target_landmark, planned_outcome, outcome;
         public float speed, start_seconds, end_seconds, impact_normalized_time, impact_seconds, contact_error_meters;
         public string reaction_asset, reaction_kind;
@@ -73,12 +76,15 @@ public static partial class DatasetBatchExporter
     }
     [Serializable] public sealed class ActorMetadata
     {
+        public int track_id, person_id;
         public string id, model_asset, neutral_asset;
         public Vector3 position, rotation_euler, scale;
         public float neutral_phase_seconds, neutral_speed;
+        public float standing_height_meters;
     }
     [Serializable] public sealed class Metadata
     {
+        public Timing generation_timing;
         public string schema = "fight_dataset_v1", scenario_id, group_id, split, category, event_class, unity_version;
         public string status = "encoded_pending_decode_and_visual_review";
         public int seed, width, height, fps, frame_count;
@@ -103,6 +109,7 @@ public static partial class DatasetBatchExporter
         public string[] videos, quality_flags;
         public float[] frame_times_seconds;
         public string[] pose_signatures;
+        public int[] other_person_occluded_body_points;
     }
     [Serializable] public sealed class ManifestEntry
     {
@@ -152,7 +159,7 @@ public static partial class DatasetBatchExporter
         try { return StartBatchCore(smokeTest, scenarioLimit, settings); }
         catch
         {
-            StopAfterStorageError("РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РїСѓСЃС‚РёС‚СЊ РіРµРЅРµСЂР°С†РёСЋ.");
+            StopAfterStorageError("Не удалось запустить генерацию.");
             throw;
         }
     }
@@ -174,6 +181,8 @@ public static partial class DatasetBatchExporter
         }
         if (smokeTest) { config.scenarioCount = 1; config.cameraViews = 2; config.fightAttackCount = 2; }
         config.Validate();
+        DatasetPersonIds.Ensure(AssetDatabase.LoadAssetAtPath<AnimationCatalog>(DatasetCatalogTools.CatalogPath).characters);
+        DatasetPersonIds.Ensure(config.catalog.characters);
         checkpoint = DatasetBatchCheckpoint.Capture(config);
         ownedCatalog = checkpoint.RestoreCatalog();
         config.catalog = ownedCatalog;
@@ -184,6 +193,8 @@ public static partial class DatasetBatchExporter
             throw new InvalidOperationException("Dataset output must be outside Assets.");
         string batchId = "batch_" + DateTime.UtcNow.ToString("yyyyMMdd_HHmmss_fff") + "_" + Guid.NewGuid().ToString("N").Substring(0, 6);
         LastBatchDirectory = Path.Combine(root, batchId);
+        Directory.CreateDirectory(LastBatchDirectory);
+        DatasetPersonIds.WriteSnapshot(LastBatchDirectory);
         foreach (string folder in new[] { "hit", "kick", "fight", "normal", "metadata", "inspection", "joint_projections" }) Directory.CreateDirectory(Path.Combine(LastBatchDirectory, folder));
         if (config.exportYoloPose) DatasetYoloWriter.Initialize(LastBatchDirectory);
         string[] requested = new[] { config.generateHit ? "hit" : null, config.generateKick ? "kick" : null, config.generateFight ? "fight" : null, config.generateNormal ? "normal" : null }.Where(c => c != null).ToArray();
@@ -193,6 +204,7 @@ public static partial class DatasetBatchExporter
             available_categories = categories, skipped_categories = requested.Except(categories).ToArray(), catalog_warnings = config.catalog.warnings, status = "running" };
         InitializeAnimationUsage();
         File.WriteAllText(Path.Combine(LastBatchDirectory, "config.json"), JsonUtility.ToJson(config, true));
+        checkInterruptedFiles = false;
         CompletedScenarios = FailedScenarios = scenarioIndex = CurrentFrame = 0;
         elapsedRecorded = 0;
         timingStarted = EditorApplication.timeSinceStartup;
@@ -212,7 +224,7 @@ public static partial class DatasetBatchExporter
         try { TickFrame(); }
         catch (Exception exception)
         {
-            StopAfterStorageError("Р“РµРЅРµСЂР°С†РёСЏ РѕСЃС‚Р°РЅРѕРІР»РµРЅР°: " + exception.Message);
+            StopAfterStorageError("Генерация остановлена: " + exception.Message);
             Debug.LogError(Status);
         }
         finally
@@ -236,10 +248,14 @@ public static partial class DatasetBatchExporter
         {
             if (readbackQueue != null)
             {
-                DrainReadbacks();
                 var budget = System.Diagnostics.Stopwatch.StartNew();
-                while (submittedFrame < metadata.frame_count && readbackQueue.CanSubmit && budget.Elapsed.TotalMilliseconds < 12)
+                do
+                {
+                    DrainReadbacks();
+                    if (submittedFrame >= metadata.frame_count || !readbackQueue.CanSubmit) break;
                     SubmitFrame();
+                }
+                while (budget.Elapsed.TotalMilliseconds < 32);
                 if (CurrentFrame >= metadata.frame_count) CompleteScenario();
                 else Status = $"Scenario {scenarioIndex + 1}/{TotalScenarios}, encoded {CurrentFrame}/{metadata.frame_count}, queued {submittedFrame - CurrentFrame}";
             }
@@ -260,8 +276,8 @@ public static partial class DatasetBatchExporter
                 DatasetContactSolver.Verify(config, stage.player, action);
                 DatasetReactionTiming.Verify(config, stage.player, action);
             }
-            penetrationGuard.Verify(frame);
             foreach (var part in parts) part.Sample();
+            penetrationGuard.Verify(frame);
             yoloPose?.Sample();
             Bounds[] bounds = ActorBounds();
             Vector3 torsoDelta = Torso(stage.player.actors[0]) - Torso(stage.player.actors[1]);
@@ -288,12 +304,15 @@ public static partial class DatasetBatchExporter
                 try
                 {
                 cameras[view].Apply(stage.camera);
-                foreach (var actor in stage.player.actors)
+                if (cameras[view].allowsPartialBody)
+                    DatasetCameraPlanner.ValidatePartialFrame(stage, bounds, config.minimumPartialBodyCoverage);
+                else foreach (var actor in stage.player.actors)
                     foreach (var bone in new[] { HumanBodyBones.Head, HumanBodyBones.LeftHand, HumanBodyBones.RightHand, HumanBodyBones.LeftFoot, HumanBodyBones.RightFoot })
                         if (!FightDataset.Prototype.FightScenarioRandomizer.Inside(stage.camera, actor.GetBoneTransform(bone).position, 0.02f))
                             throw new InvalidOperationException("Actor cropped in " + cameras[view].id + " frame " + frame);
                 string projection = poseWriters != null ? DatasetProjectedJoints.Frame(stage.player, stage.camera, bounds, frame, config.fps) : null;
                 string labels = yoloPose?.Labels(stage.camera);
+                if (yoloPose != null) metadata.other_person_occluded_body_points[view * metadata.frame_count + frame] = yoloPose.LastOtherPersonOccludedBodyPoints;
                 if (readbackQueue != null)
                 {
                     pending.projections[view] = projection;
@@ -307,7 +326,7 @@ public static partial class DatasetBatchExporter
                 finally { RenderTexture.active = previous; }
                 if (!encoders[view].AddFrame(pixels)) throw new IOException("Encoder rejected frame " + frame);
                 if (poseWriters != null) poseWriters[view].WriteLine(projection);
-                yoloWriter?.Enqueue(cameras[view].id, frame, pixels.GetRawTextureData<byte>().ToArray(), labels);
+                yoloWriter?.Enqueue(cameras[view].id, frame, pixels.GetRawTextureData<byte>(), labels);
                 if (config.saveInspectionFrames && InspectionFrame(frame)) SaveInspection(view, frame);
                 }
                 finally { stage.camera.targetTexture = projectionTarget; }
@@ -337,7 +356,7 @@ public static partial class DatasetBatchExporter
                 if (!scenarioPreparation.MoveNext()) { CancelPreparation(); break; }
                 Status = "Preparing " + (scenarioIndex + 1) + "/" + TotalScenarios + ": " + scenarioPreparation.Current;
             }
-            while (elapsed.Elapsed.TotalMilliseconds < 8);
+            while (elapsed.Elapsed.TotalMilliseconds < 32);
         }
         catch (Exception exception) { CancelPreparation(); RecordFailure(exception); }
         finally
@@ -365,15 +384,21 @@ public static partial class DatasetBatchExporter
         stage.camera.enabled = false;
         stage.camera.scene = scene;
         yield return "Building scenario";
-        using (var plan = DatasetScenarioPlanner.CreateSteps(config, stage, category, seed, value => stage.player.plan = value, animationUsage))
+        var framing = config.partialFramingProbability > 0 && category != "normal" ? new DatasetCameraPlanner.FramingSamples(config, seed) : null;
+        using (var plan = DatasetScenarioPlanner.CreateSteps(config, stage, category, seed, value => stage.player.plan = value, animationUsage, framing))
             while (plan.MoveNext()) yield return plan.Current;
-        using (var views = DatasetCameraPlanner.CreateSteps(config, stage, seed, value => cameras = value))
+        using (var views = DatasetCameraPlanner.CreateSteps(config, stage, seed, value => cameras = value, scenarioIndex, framing))
             while (views.MoveNext()) yield return views.Current;
     }
 
     private static IEnumerator<object> BeginScenarioSteps()
     {
-        ArchiveUncommittedScenario();
+        preparationClock=System.Diagnostics.Stopwatch.StartNew();
+        if (checkInterruptedFiles)
+        {
+            ArchiveUncommittedScenario();
+            checkInterruptedFiles = false;
+        }
         string category = categories[scenarioIndex % categories.Length];
         Exception last = null;
         int chosenSeed = 0;
@@ -409,15 +434,18 @@ public static partial class DatasetBatchExporter
         double splitPosition = splitValue / ((double)uint.MaxValue + 1);
         string split = splitPosition < config.trainFraction ? "train" : splitPosition < config.trainFraction + config.validationFraction ? "val" : "test";
         metadata = new Metadata { scenario_id = id, seed = chosenSeed, group_id = group, split = split, category = category,
+            generation_timing=new Timing(),
             event_class = plan.eventClass, unity_version = Application.unityVersion, width = config.width, height = config.height, fps = config.fps,
             frame_count = frameCount, duration_seconds = frameCount / (float)config.fps, cameras = cameras, videos = videos,
             room_size = config.roomSize, room_height = config.roomHeight, attack_blend_in = plan.attackBlendIn,
             reaction_blend_in = plan.reactionBlendIn, blend_out = plan.blendOut, quality_flags = plan.qualityFlags.ToArray(),
             animation_selection = plan.animationSelection.ToArray(),
             actors = stage.player.actors.Select((a, i) => new ActorMetadata { id = "actor_" + (i == 0 ? "A" : "B"), model_asset = stage.modelPaths[i],
+                track_id = i + 1, person_id = DatasetPersonIds.Get(stage.modelPaths[i]),
                 neutral_asset = AssetDatabase.GetAssetPath(stage.player.neutralClips[i]), position = a.transform.position, rotation_euler = a.transform.eulerAngles, scale = a.transform.localScale,
-                neutral_phase_seconds = plan.neutralTimeOffsets[i], neutral_speed = plan.neutralSpeeds[i] }).ToArray(),
+                neutral_phase_seconds = plan.neutralTimeOffsets[i], neutral_speed = plan.neutralSpeeds[i], standing_height_meters = stage.standingHeights[i] }).ToArray(),
             actions = plan.actions.Select(a => new ActionMetadata { actor = "actor_" + (a.actor == 0 ? "A" : "B"), target = "actor_" + (a.target == 0 ? "A" : "B"),
+                actor_person_id = DatasetPersonIds.Get(stage.modelPaths[a.actor]), target_person_id = DatasetPersonIds.Get(stage.modelPaths[a.target]),
                 clip_key = a.clipKey, clip_asset = a.assetPath, actor_action = a.actorAction, attacking_limb = a.limb.ToString(),
                 target_landmark = a.targetLandmark.ToString(),
                 speed = a.speed, start_seconds = a.start, end_seconds = a.End, impact_normalized_time = a.impactNormalizedTime, impact_seconds = a.impactTime,
@@ -436,7 +464,7 @@ public static partial class DatasetBatchExporter
                 attack_end_displacement = a.attackEndDisplacement, reaction_end_displacement = a.reactionEndDisplacement,
                 holds_fallen_pose = a.HoldsFallenPose,
                 idle_return_seconds = a.HoldsFallenPose ? -1f : Mathf.Max(a.End, a.ReactionEnd) + plan.blendOut }).ToArray(),
-            frame_times_seconds = new float[frameCount], pose_signatures = new string[frameCount] };
+            frame_times_seconds = new float[frameCount], pose_signatures = new string[frameCount], other_person_occluded_body_points = new int[frameCount * cameras.Length] };
         parts = stage.player.actors.SelectMany((actor, i) => actor.GetComponentsInChildren<SkinnedMeshRenderer>().Select(s => new BakedPart(s, i))).ToArray();
         if (yoloPose != null)
         {
@@ -449,6 +477,7 @@ public static partial class DatasetBatchExporter
             metadata.pose_face_anchors = yoloPose.faceAnchors;
         }
         penetrationGuard = new DatasetPenetrationGuard(stage.player);
+        foreach(var part in parts)penetrationGuard.Bind(part.source,part.mesh);
         if (config.useAsyncGPUReadback && SystemInfo.supportsAsyncGPUReadback && string.IsNullOrEmpty(summary.async_readback_fallback_reason))
             readbackQueue = new DatasetFrameReadbackQueue(config.width, config.height, cameras.Length);
         else
@@ -470,12 +499,16 @@ public static partial class DatasetBatchExporter
             if (poseWriters != null) poseWriters[i] = new StreamWriter(Path.Combine(LastBatchDirectory, "joint_projections", id + "_" + cameras[i].id + ".jsonl"), false, Encoding.UTF8);
         }
         CurrentFrame = submittedFrame = 0;
+        metadata.generation_timing.preparation_seconds=preparationClock.Elapsed.TotalSeconds;
+        frameExportClock=System.Diagnostics.Stopwatch.StartNew();
     }
 
     private static bool InspectionFrame(int frame) => frame == 0 || frame == metadata.frame_count - 1 || metadata.actions.Any(a => frame == Mathf.RoundToInt(a.impact_seconds * config.fps) || frame == Mathf.RoundToInt((a.impact_seconds + 0.25f) * config.fps));
 
     private static void CompleteScenario()
     {
+        metadata.generation_timing.frame_export_seconds=frameExportClock.Elapsed.TotalSeconds;
+        var finalizationClock=System.Diagnostics.Stopwatch.StartNew();
         if (yoloWriter != null) metadata.pose_image_count = yoloWriter.Commit(metadata.frame_count * cameras.Length);
         for (int i = 0; i < encoders.Length; i++) { encoders[i]?.Dispose(); encoders[i] = null; }
         for (int i = 0; i < temporaryVideos.Length; i++)
@@ -484,6 +517,7 @@ public static partial class DatasetBatchExporter
             File.Move(temporaryVideos[i], Path.Combine(LastBatchDirectory, metadata.videos[i]));
         }
         string metadataPath = "metadata/" + metadata.scenario_id + ".json";
+        metadata.generation_timing.finalization_seconds=finalizationClock.Elapsed.TotalSeconds;
         File.WriteAllText(Path.Combine(LastBatchDirectory, metadataPath), JsonUtility.ToJson(metadata, true));
         var entry = new ManifestEntry { scenario_id = metadata.scenario_id, metadata = metadataPath, group_id = metadata.group_id,
             scenario_index = scenarioIndex,
@@ -558,7 +592,11 @@ public static partial class DatasetBatchExporter
         IsPaused = false;
         CurrentFrame = 0;
         CanResumeLast = scenarioIndex < summary.requested_scenarios;
-        try { WriteSummary(); SaveCheckpoint(); WriteAnimationReport(); }
+        try
+        {
+            WriteSummary(); SaveCheckpoint(); WriteAnimationReport();
+            if (config.exportYoloPose && summary.scenarios.Count > 0) DatasetPoseTrainingSelection.Write(LastBatchDirectory, config, summary);
+        }
         finally { ReleaseConfig(); }
         Debug.Log($"Dataset batch {state}: {CompletedScenarios} scenarios, {FailedScenarios} failures. {LastBatchDirectory}");
     }
@@ -589,7 +627,7 @@ public static partial class DatasetBatchExporter
         readbackQueue = null;
         yoloWriter?.Dispose();
         yoloWriter = null;
-        yoloPose = null;
+        yoloPose?.Dispose(); yoloPose = null;
         submittedFrame = 0;
         if (encoders != null) foreach (var encoder in encoders) encoder?.Dispose();
         encoders = null;

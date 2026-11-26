@@ -1,5 +1,84 @@
 # Project checkpoint
 
+## Current update — 2026-11-26
+
+Person IDs and performance: actors now carry track_id (1/2 in the video) and
+stable person_id (model identity across videos); actions carry actor/target
+person IDs. Append-only GUID registry: Assets/Config/DatasetPersonIds.json;
+people.json snapshots in batches. Folder DatasetOutput/Generated/2 contains the
+previous ten videos renamed by the user; their metadata was backfilled with IDs,
+with original JSON backed up under Backups/BeforeOptimization_20261126/metadata_2.
+
+Fixed actual FBX texture connections, including Ch08 clothing/hair and Ch06
+clothing: ten diffuse/normal slots corrected across the model set. No FBX/UV
+edits; all 19 face profiles validate. Existing video pixels are not rewritten.
+Burst BVH refit/parallel penetration queries, shared baked frame meshes, bounded
+alpha cache and exact-extremum YOLO projection are enabled. All-frame contact,
+penetration and YOLO output remain enabled at 1280x720/25FPS.
+
+Measured same ten scenario seeds/clips/timings: 595.38s before, 184.84s after
+(3.22x). A second ordering experiment took 204.00s and was reverted. Independent
+decode passed 10 MP4s / 1362 JPG/TXT pairs; IDs valid. Managed/Burst differential
+passed 1392 poses including deliberately invalid overlaps; YOLO comparison had
+exact coordinates/visibility on 50 frames. Reports, final sample videos and
+corrected model render: DatasetOutput/Checks/Optimization_20261126.
+Read Docs/PerformanceAndPersonIds.md. No bulk 10k/20k run was started.
+
+Texture experiment: Ch01 alone now uses unchanged source albedo/normal copies
+at native 4096 resolution (originals loaded at 2048). AI edit v1 is retained as
+an unassigned experiment: output 1254 square, lost alpha and shifted facial
+registration. It was rejected. Full-body 720p benefit from native 4K is small;
+no all-character rollout or render-resolution change. All 19 facial profiles
+validate after refreshing Ch01's dependency signature with the same anchors.
+See Docs/TextureExperiment.md and
+DatasetOutput/Checks/TextureUpgrade_20261126/verification.json.
+
+Imported and prepared 17 new FBX files: 19 model files / 18 distinct people in
+total (the two Ch42 downloads have matching geometry, rig and diffuse textures;
+the duplicate stays on disk and does not double its selection probability).
+Humanoid, URP materials/embedded textures and surface facial profiles were
+checked for every model. Source FBX files are preserved. Profiles now live in
+Assets/Config/DatasetFaceLandmarks.json and are invalidated by model dependency
+changes. DatasetCharacterTools prepares textures/materials from the menu.
+
+Independent standing visible-mesh heights default to 1.65–1.95m via uniform XYZ
+scale before contact calibration/grounding. Height endpoint audits passed for
+all 19 files. Original attack/contact/penetration checks remain enabled.
+
+Partial body views are requested with probability 0.4. They sample every output
+pose while planning the camera; both people must remain partially in frame and
+the event location stays inside the image. Partial views reject depth-plane
+crossings, clip YOLO boxes and mark outside joints 0/0/0. Full views are retained.
+
+Camera distance now draws across 0.95–7.5m, FOV 30–110 degrees and roll -7…7.
+Room size is 12x12m for far cameras. Near views remain subject to safety checks.
+Hard views use stratified, randomly located 5% slots and allow inter-person
+occlusion while keeping the event inside the image. Actual other-person body
+keypoint blockers are measured per output view/frame, not guessed from v=1.
+
+data.yaml now references selected train/val/test image lists. Candidates are
+sampled near 5Hz, quiet pose repetitions thinned, event frames prioritized. The
+selector targets exactly 1 hard frame per 19 ordinary frames without duplication
+when enough candidates exist. selection.json reports actual counts and unmet
+targets honestly. data_all_frames.yaml preserves full-frame training access.
+This reduces the training set, not the source rendering/contact-check workload.
+
+Validation: compilation 0 errors/warnings; 13 independently decoded videos,
+995 frames. Hit/kick at different heights passed; final hit gap 1.36mm. Eight
+camera probes span 1.78–5.99m, all four image-edge crop directions occurred and
+real inter-person occlusion was recorded. Selection test: 40 chosen frames, 2
+hard = 5%; 0% disabled, 50%, shortage, and 10-of-200 hard-view schedule checks
+passed. Reports and actual rendered image overlays:
+DatasetOutput/Checks/CharacterDiversity_20261126/final_verification.json,
+camera_selection_verification.json, camera_variety_overview.png.
+One early test was correctly rejected for a crop between coarse samples; camera
+planning was changed to output-frame coverage before the passing tests.
+Historical sections below describe earlier versions.
+
+Saved user settings still request 100 Hit + 100 Kick, one view, 1280x720 at 25fps
+with YOLO Pose. No production-size batch was started during this work. Do not
+claim any model training or measured speedup; none was performed.
+
 Latest addition, 2026-11-18: native per-frame YOLO Pose export is implemented.
 `exportYoloPose` writes JPG + COCO17 TXT pairs under each new batch's yolo folder,
 with data.yaml, grouped splits and geometric 0/1/2 visibility. It reuses the RGB

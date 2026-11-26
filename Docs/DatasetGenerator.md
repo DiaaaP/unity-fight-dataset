@@ -1,5 +1,13 @@
 # Unity synthetic interaction dataset generator
 
+Current character/camera update (2026-11-26): see
+[CharacterDiversity.md](CharacterDiversity.md). It adds 1.65–1.95m independent
+heights, reviewed face profiles, partially cropped people, wider camera distance/
+FOV variation, measured inter-person occlusions and image-list training selection
+targeting 5% hard frames. `data.yaml` uses the selected lists; use
+`data_all_frames.yaml` for all original frames. Dated measurements below refer
+to their respective versions and do not benchmark this update.
+
 ## Upload assets
 
 Drop humanoid FBX files into these folders:

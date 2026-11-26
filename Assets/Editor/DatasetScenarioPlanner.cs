@@ -10,6 +10,10 @@ public sealed class DatasetCameraView
     public string id, profile, framing;
     public Vector3 position, rotationEuler;
     public float fov, height, distance, azimuth, elevation, screenOccupancy;
+    public bool allowsPartialBody;
+    public string crop;
+    public float minimumBodyCoverage;
+    public bool occlusionChallenge;
     public void Apply(Camera camera) { camera.transform.SetPositionAndRotation(position, Quaternion.Euler(rotationEuler)); camera.fieldOfView = fov; }
 }
 
@@ -41,7 +45,7 @@ public static class DatasetScenarioPlanner
     }
 
     public static IEnumerator<object> CreateSteps(DatasetGeneratorConfig config, DatasetSceneFactory.Stage stage, string category, int seed,
-        Action<DatasetScenarioPlan> completed, IReadOnlyDictionary<string, int> usage = null)
+        Action<DatasetScenarioPlan> completed, IReadOnlyDictionary<string, int> usage = null, DatasetCameraPlanner.FramingSamples capture = null)
     {
         if (!AvailableCategories(config).Contains(category)) throw new InvalidOperationException("Category unavailable: " + category);
         var random = new System.Random(seed);
@@ -76,6 +80,7 @@ public static class DatasetScenarioPlanner
             completed(plan);
             yield break;
         }
+        using var guard = new DatasetPenetrationGuard(player);
         int count = category == "fight" ? config.fightAttackCount : 1;
         var selectedCounts = new Dictionary<string, int>();
         float nextStart = Pick(random, new Vector2(0.65f, 1.55f));
@@ -103,7 +108,7 @@ public static class DatasetScenarioPlanner
                 plan.actions.Add(action);
                 Exception trialFailure = null;
                 bool succeeded = false;
-                using (var trial = PrepareActionSteps(config, player, plan, action, entry, random, index == 0, index == count - 1))
+                using (var trial = PrepareActionSteps(config, player, plan, action, entry, random, index == 0, index == count - 1, guard, capture))
                 {
                     while (true)
                     {
@@ -143,9 +148,9 @@ public static class DatasetScenarioPlanner
     }
 
     private static IEnumerator<object> PrepareActionSteps(DatasetGeneratorConfig config, DatasetScenarioPlayer player,
-        DatasetScenarioPlan plan, ScenarioAction action, CatalogClip entry, System.Random random, bool reposition, bool final)
+        DatasetScenarioPlan plan, ScenarioAction action, CatalogClip entry, System.Random random, bool reposition, bool final, DatasetPenetrationGuard guard, DatasetCameraPlanner.FramingSamples capture)
     {
-        using (var contact = DatasetContactSolver.CalibrateSteps(config, player, action, entry, reposition))
+        using (var contact = DatasetContactSolver.CalibrateSteps(config, player, action, entry, reposition, guard))
             while (contact.MoveNext()) yield return contact.Current;
         var reactions = Pool(config.catalog, ClipKind.HitReaction, ClipKind.Stumble);
         if (final) reactions = reactions.Concat(Pool(config.catalog, ClipKind.Fall).Where(r => r.reviewedFall)).ToArray();
@@ -171,7 +176,7 @@ public static class DatasetScenarioPlanner
         DatasetContactSolver.Verify(config, player, action);
         float checkedDuration = Mathf.Max(config.minimumDurationSeconds,
             plan.actions.Max(a => Mathf.Max(a.End, a.ReactionEnd)) + plan.blendOut + 1.6f);
-        using (var validation = DatasetPenetrationGuard.VerifyPlanSteps(config, player, checkedDuration))
+        using (var validation = guard.CheckPlanFrames(config, player, checkedDuration, final ? capture : null))
             while (validation.MoveNext()) yield return validation.Current;
     }
 

@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.Animations;
 using UnityEngine.Playables;
@@ -192,7 +195,28 @@ namespace FightDataset
             private readonly float floorY;
             private Mesh groundMesh;
             private readonly SkinnedMeshRenderer[] skins;
-            private readonly List<Vector3> groundVertices = new List<Vector3>();
+            private NativeArray<Vector3> groundVertices;
+            private NativeArray<float> minimum;
+
+            [BurstCompile(CompileSynchronously = true, FloatMode = FloatMode.Strict)]
+            private struct FindBottom : IJob
+            {
+                [ReadOnly] public NativeArray<Vector3> vertices;
+                public Matrix4x4 matrix;
+                public NativeArray<float> minimum;
+
+                public void Execute()
+                {
+                    float bottom = minimum[0];
+                    for (int i = 0; i < vertices.Length; i++)
+                    {
+                        var p = vertices[i];
+                        float y = matrix.m10 * p.x + matrix.m11 * p.y + matrix.m12 * p.z + matrix.m13;
+                        bottom = Mathf.Min(bottom, y);
+                    }
+                    minimum[0] = bottom;
+                }
+            }
 
             public Mixer(Animator animator, AnimationClip idle)
             {
@@ -239,15 +263,23 @@ namespace FightDataset
                 if (correctFloor)
                 {
                     if (!groundMesh) groundMesh = new Mesh { name = "ActorGroundProbe" };
-                    float bottom = float.PositiveInfinity;
+                    if (!minimum.IsCreated) minimum = new NativeArray<float>(1, Allocator.Persistent);
+                    minimum[0] = float.PositiveInfinity;
                     foreach (var skin in skins)
                     {
                         skin.BakeMesh(groundMesh, true);
-                        groundMesh.GetVertices(groundVertices);
-                        var matrix = skin.transform.localToWorldMatrix;
-                        foreach (var vertex in groundVertices)
-                            bottom = Mathf.Min(bottom, matrix.MultiplyPoint3x4(vertex).y);
+                        int count = groundMesh.vertexCount;
+                        if (count == 0) continue;
+                        if (!groundVertices.IsCreated || groundVertices.Length < count)
+                        {
+                            if (groundVertices.IsCreated) groundVertices.Dispose();
+                            groundVertices = new NativeArray<Vector3>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+                        }
+                        var positions = groundVertices.GetSubArray(0, count);
+                        using (var data = Mesh.AcquireReadOnlyMeshData(groundMesh)) data[0].GetVertices(positions);
+                        new FindBottom { vertices = positions, matrix = skin.transform.localToWorldMatrix, minimum = minimum }.Run();
                     }
+                    float bottom = minimum[0];
                     if (bottom < floorY + 0.002f)
                         animator.transform.position += Vector3.up * (floorY + 0.002f - bottom);
                 }
@@ -259,6 +291,8 @@ namespace FightDataset
             {
                 DatasetPlayableLifetime.Release(ref graph);
                 if (animator) { animator.transform.localPosition = basePosition; animator.transform.localRotation = BaseRotation; }
+                if (groundVertices.IsCreated) groundVertices.Dispose();
+                if (minimum.IsCreated) minimum.Dispose();
                 if (groundMesh)
                 {
                     if (Application.isPlaying) UnityEngine.Object.Destroy(groundMesh);

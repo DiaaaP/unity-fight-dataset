@@ -22,8 +22,12 @@ public sealed class DatasetPenetrationGuard : IDisposable
         actors = player.actors.Select(a => a.GetComponentsInChildren<SkinnedMeshRenderer>()
             .Where(s => s.sharedMesh && s.sharedMesh.vertexCount > 0).Select(s => new Surface(s)).ToArray()).ToArray();
     }
+    public void Bind(SkinnedMeshRenderer source, Mesh baked)
+    { foreach(var actor in actors)foreach(var surface in actor)surface.Bind(source,baked); }
 
-    public Result Measure(bool stopOnFirst = false)
+    public Result Measure(bool stopOnFirst = false) => MeasureCore(stopOnFirst, true);
+    public Result MeasureReference(bool stopOnFirst = false) => MeasureCore(stopOnFirst, false);
+    private Result MeasureCore(bool stopOnFirst, bool optimized)
     {
         foreach (var actor in actors) foreach (var part in actor) part.Update();
         var result = new Result();
@@ -32,16 +36,32 @@ public sealed class DatasetPenetrationGuard : IDisposable
                 foreach (var target in actors[1 - actor])
                 {
                     if (!source.Bounds.Intersects(target.Bounds)) continue;
-                    foreach (Vector3 point in source.SamplePoints())
+                    if (optimized)
                     {
-                        float depth = target.InsideDepth(point);
-                        if (depth <= MaximumDepth) continue;
-                        result.samples++;
-                        if (depth > result.depth) { result.depth = depth; result.actor = actor; result.point = point; }
-                        if (stopOnFirst) return result;
+                        source.accelerated.Query(target.accelerated);
+                        for (int i = 0; i < source.accelerated.Count; i++)
+                        {
+                            float depth = source.accelerated.Depth(i);
+                            if (depth >= 0 && depth <= MaximumDepth) continue;
+                            var point = source.accelerated.Point(i);
+                            if (depth < 0) depth = target.InsideDepth(point);
+                            if (Record(result, actor, point, depth) && stopOnFirst) return result;
+                        }
+                    }
+                    else foreach (var point in source.SamplePoints())
+                    {
+                        if (Record(result, actor, point, target.InsideDepth(point)) && stopOnFirst) return result;
                     }
                 }
         return result;
+    }
+
+    private static bool Record(Result result, int actor, Vector3 point, float depth)
+    {
+        if (depth <= MaximumDepth) return false;
+        result.samples++;
+        if (depth > result.depth) { result.depth = depth; result.actor = actor; result.point = point; }
+        return true;
     }
 
     public void Verify(int frame)
@@ -59,21 +79,40 @@ public sealed class DatasetPenetrationGuard : IDisposable
 
     public static IEnumerator<object> VerifyPlanSteps(DatasetGeneratorConfig config, DatasetScenarioPlayer player, float duration)
     {
-        using (var guard = new DatasetPenetrationGuard(player))
+        using var guard = new DatasetPenetrationGuard(player);
+        using var steps = guard.CheckPlanFrames(config, player, duration);
+        while (steps.MoveNext()) yield return steps.Current;
+    }
+
+    internal IEnumerator<object> CheckPlanFrames(DatasetGeneratorConfig config, DatasetScenarioPlayer player, float duration, DatasetCameraPlanner.FramingSamples capture = null)
+    {
+        int frames = Mathf.CeilToInt(duration * config.fps);
+        capture?.BeginTrial(frames);
+        // Reject obvious failures cheaply, then check every remaining frame.
+        // Accepted plans still receive exactly the full output-frame coverage.
+        for (int pass = 0; pass < 2; pass++)
+        for (int frame = 0; frame < frames; frame += pass == 0 ? 5 : 1)
         {
-            int frames = Mathf.CeilToInt(duration * config.fps);
-            // Reject obvious failures cheaply, then check every remaining frame.
-            // Accepted plans still receive exactly the full output-frame coverage.
-            for (int pass = 0; pass < 2; pass++)
-            for (int frame = 0; frame < frames; frame += pass == 0 ? 5 : 1)
-            {
-                if (pass == 1 && frame % 5 == 0) continue;
-                player.SampleAtTime(frame / (float)config.fps);
-                guard.Verify(frame);
-                yield return "Checking intersections " + (frame + 1) + "/" + frames;
-            }
+            if (pass == 1 && frame % 5 == 0) continue;
+            player.SampleAtTime(frame / (float)config.fps);
+            Verify(frame);
+            capture?.Record(frame, player, this);
+            yield return "Checking intersections " + (frame + 1) + "/" + frames;
         }
         player.SampleAtTime(0);
+    }
+
+    internal Bounds[] RenderedActorBounds()
+    {
+        var boxes = new Bounds[actors.Length];
+        for (int i = 0; i < actors.Length; i++)
+            for (int j = 0; j < actors[i].Length; j++)
+            {
+                var box = actors[i][j].RenderedBounds();
+                if (j == 0) boxes[i] = box;
+                else boxes[i].Encapsulate(box);
+            }
+        return boxes;
     }
 
     public void Dispose() { foreach (var actor in actors) foreach (var part in actor) part.Dispose(); }
@@ -85,6 +124,7 @@ public sealed class DatasetPenetrationGuard : IDisposable
         private sealed class Node { public Bounds bounds; public int start, count, left = -1, right = -1; }
         private readonly SkinnedMeshRenderer skin;
         private readonly Mesh mesh;
+        private Mesh rendered;
         private readonly int[] triangles, order;
         private readonly List<Node> nodes = new List<Node>();
         private readonly List<float> hits = new List<float>();
@@ -92,7 +132,9 @@ public sealed class DatasetPenetrationGuard : IDisposable
             new Vector3(.237f, 1, .419f).normalized, new Vector3(.357f, .113f, 1).normalized };
         public Vector3[] vertices;
         public readonly int[] samples;
-        public Bounds Bounds => nodes[0].bounds;
+        public readonly DatasetPenetrationBurst accelerated;
+        private bool referenceFresh;
+        public Bounds Bounds { get; private set; }
 
         public Surface(SkinnedMeshRenderer source)
         {
@@ -108,13 +150,20 @@ public sealed class DatasetPenetrationGuard : IDisposable
             var initialBounds = order.Select(TriangleBounds).ToArray();
             var centers = initialBounds.Select(b => b.center).ToArray();
             Build(0, order.Length, initialBounds, centers);
+            accelerated = new DatasetPenetrationBurst(vertices, triangles, order, nodes.Select(n => new DatasetPenetrationBurst.Node {
+                low = new Unity.Mathematics.float3(n.bounds.min.x,n.bounds.min.y,n.bounds.min.z),
+                high = new Unity.Mathematics.float3(n.bounds.max.x,n.bounds.max.y,n.bounds.max.z),
+                start=n.start,count=n.count,left=n.left,right=n.right }).ToArray(), samples);
+            Bounds = nodes[0].bounds;
         }
         private void Bake()
         {
-            skin.BakeMesh(mesh, true); vertices = mesh.vertices;
+            if(rendered)vertices=rendered.vertices;
+            else { skin.BakeMesh(mesh, true); vertices = mesh.vertices; }
             var matrix = skin.transform.localToWorldMatrix;
             for (int i = 0; i < vertices.Length; i++) vertices[i] = matrix.MultiplyPoint3x4(vertices[i]);
         }
+        public void Bind(SkinnedMeshRenderer source,Mesh baked){if(source==skin)rendered=baked;}
         private Bounds TriangleBounds(int triangle)
         {
             int t = triangle * 3; var bounds = new Bounds(vertices[triangles[t]], Vector3.zero);
@@ -131,7 +180,18 @@ public sealed class DatasetPenetrationGuard : IDisposable
             int half = count / 2; node.left = Build(start, half, initialBounds, centers); node.right = Build(start + half, count - half, initialBounds, centers);
             return index;
         }
-        public void Update() { Bake(); Refit(0); }
+        public void Update()
+        {
+            if (!rendered) skin.BakeMesh(mesh, true);
+            Bounds = accelerated.UpdateFromMesh(rendered ? rendered : mesh, skin.transform.localToWorldMatrix, vertices);
+            referenceFresh = false;
+        }
+        public Bounds RenderedBounds()
+        {
+            var posed = rendered ? rendered : mesh;
+            posed.RecalculateBounds();
+            return DatasetCameraPlanner.WorldBounds(posed.bounds, skin.transform.localToWorldMatrix);
+        }
         public IEnumerable<Vector3> SamplePoints()
         {
             foreach (int index in samples) yield return vertices[index];
@@ -157,6 +217,7 @@ public sealed class DatasetPenetrationGuard : IDisposable
         public float InsideDepth(Vector3 point)
         {
             if (!Bounds.Contains(point)) return 0;
+            if (!referenceFresh) { Refit(0); referenceFresh = true; }
             float nearest = float.PositiveInfinity; Vector3 closest = default, normal = default;
             Nearest(0, point, ref nearest, ref closest, ref normal);
             // Surface contact and slight clothing compression are allowed.
@@ -212,6 +273,6 @@ public sealed class DatasetPenetrationGuard : IDisposable
                 float distance = Vector3.Dot(e2, q) * inverse; if (distance > 0.00001f) hits.Add(distance);
             }
         }
-        public void Dispose() { if (mesh) UnityEngine.Object.DestroyImmediate(mesh); }
+        public void Dispose() { accelerated?.Dispose(); if (mesh) UnityEngine.Object.DestroyImmediate(mesh); }
     }
 }

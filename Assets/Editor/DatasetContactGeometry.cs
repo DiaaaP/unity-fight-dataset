@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 
 public sealed class DatasetContactGeometry : IDisposable
@@ -19,6 +22,8 @@ public sealed class DatasetContactGeometry : IDisposable
         public readonly Dictionary<HumanBodyBones, int[]> limbIndices = new Dictionary<HumanBodyBones, int[]>();
         public readonly Dictionary<HumanBodyBones, int[]> targetTriangles = new Dictionary<HumanBodyBones, int[]>();
         public Vector3[] world;
+        public NativeArray<Vector3> positions;
+        public readonly Dictionary<int[], NativeArray<int>> indices = new Dictionary<int[], NativeArray<int>>();
     }
     private readonly Animator actor;
     private readonly Part[] parts;
@@ -70,12 +75,16 @@ public sealed class DatasetContactGeometry : IDisposable
                 part.limbIndices[limb] = indices;
             }
             if (indices.Length == 0) continue;
-            Bake(part);
+            part.skin.BakeMesh(part.baked, true);
+            var local = part.baked.vertices;
+            var matrix = part.skin.transform.localToWorldMatrix;
             // Keep a bounded, deterministic sampling of the actual hand/foot surface.
             int step = Mathf.Max(1, indices.Length / 240);
             for (int i = 0; i < indices.Length; i += step)
-                if (!hand || Vector3.Dot(part.world[indices[i]] - root.position, handDirection) >= 0.025f)
-                    result.Add(part.world[indices[i]]);
+            {
+                var point = matrix.MultiplyPoint3x4(local[indices[i]]);
+                if (!hand || Vector3.Dot(point - root.position, handDirection) >= 0.025f) result.Add(point);
+            }
         }
         if (result.Count == 0) throw new InvalidOperationException("No weighted mesh surface for " + limb);
         if (incomingDirection.HasValue && incomingDirection.Value.sqrMagnitude > 0.0001f)
@@ -125,16 +134,77 @@ public sealed class DatasetContactGeometry : IDisposable
     }
 
     public Contact Measure(Vector3[] limbSurface, HumanBodyBones? region = null)
-        => Measure(limbSurface, region, true);
+    {
+        var searchBounds = new Bounds(limbSurface[0], Vector3.zero);
+        foreach (var p in limbSurface) searchBounds.Encapsulate(p);
+        var patchLow = searchBounds.min;
+        var patchHigh = searchBounds.max;
+        searchBounds.Expand(.5f);
+        using var patch = new NativeArray<Vector3>(limbSurface, Allocator.TempJob);
+        using var closest = new NativeArray<Contact>(new[] { new Contact { gap = float.PositiveInfinity } }, Allocator.TempJob);
+        // The accumulator holds squared distance until all parts have been visited.
+        foreach (var part in parts)
+        {
+            var indices = Triangles(part, region);
+            if (indices.Length == 0) continue;
+            if (!part.indices.TryGetValue(indices, out var triangles))
+            {
+                triangles = new NativeArray<int>(indices, Allocator.Persistent);
+                part.indices.Add(indices, triangles);
+            }
+            part.skin.BakeMesh(part.baked, true);
+            if (!part.positions.IsCreated) part.positions = new NativeArray<Vector3>(part.baked.vertexCount, Allocator.Persistent);
+            using (var data = Mesh.AcquireReadOnlyMeshData(part.baked)) data[0].GetVertices(part.positions);
+            new FindContact { vertices = part.positions, triangles = triangles, patch = patch,
+                matrix = part.skin.transform.localToWorldMatrix, low = searchBounds.min, high = searchBounds.max,
+                patchLow = patchLow, patchHigh = patchHigh, closest = closest }.Run();
+        }
+        var result = closest[0];
+        result.gap = Mathf.Sqrt(result.gap);
+        return result;
+    }
+
+    [BurstCompile(CompileSynchronously = true, FloatMode = FloatMode.Strict)]
+    private struct FindContact : IJob
+    {
+        public NativeArray<Vector3> vertices;
+        [ReadOnly] public NativeArray<int> triangles;
+        [ReadOnly] public NativeArray<Vector3> patch;
+        public NativeArray<Contact> closest;
+        public Matrix4x4 matrix;
+        public Vector3 low, high, patchLow, patchHigh;
+
+        public void Execute()
+        {
+            for (int i = 0; i < vertices.Length; i++) vertices[i] = matrix.MultiplyPoint3x4(vertices[i]);
+            var best = closest[0];
+            for (int t = 0; t < triangles.Length; t += 3)
+            {
+                var a = vertices[triangles[t]];
+                var b = vertices[triangles[t + 1]];
+                var c = vertices[triangles[t + 2]];
+                var min = Vector3.Min(a, Vector3.Min(b, c));
+                var max = Vector3.Max(a, Vector3.Max(b, c));
+                if (min.x > high.x || max.x < low.x || min.y > high.y || max.y < low.y || min.z > high.z || max.z < low.z) continue;
+                if (BoxDistanceSquared(min, max, patchLow, patchHigh) >= best.gap) continue;
+                for (int i = 0; i < patch.Length; i++)
+                {
+                    var p = patch[i];
+                    if (BoxDistanceSquared(min, max, p, p) >= best.gap) continue;
+                    var q = ClosestPoint(p, a, b, c);
+                    float squared = (q - p).sqrMagnitude;
+                    if (squared >= best.gap) continue;
+                    best = new Contact { gap = squared, attack = p, target = q };
+                }
+            }
+            closest[0] = best;
+        }
+    }
 
     internal Contact MeasureReference(Vector3[] limbSurface, HumanBodyBones? region = null)
-        => Measure(limbSurface, region, false);
-
-    private Contact Measure(Vector3[] limbSurface, HumanBodyBones? region, bool prune)
     {
         var bounds = new Bounds(limbSurface[0], Vector3.zero);
         foreach (var p in limbSurface) bounds.Encapsulate(p);
-        Vector3 patchLow = bounds.min, patchHigh = bounds.max;
         bounds.Expand(0.5f);
         var contact = new Contact { gap = float.PositiveInfinity };
         float bestSquared = float.PositiveInfinity;
@@ -148,12 +218,8 @@ public sealed class DatasetContactGeometry : IDisposable
                 Vector3 a = vertices[triangles[triangle]], b = vertices[triangles[triangle + 1]], c = vertices[triangles[triangle + 2]];
                 Vector3 low = Vector3.Min(a, Vector3.Min(b, c)), high = Vector3.Max(a, Vector3.Max(b, c));
                 if (low.x > bounds.max.x || high.x < bounds.min.x || low.y > bounds.max.y || high.y < bounds.min.y || low.z > bounds.max.z || high.z < bounds.min.z) continue;
-                // Box distances are lower bounds, so discarded pairs cannot
-                // improve the exact nearest-surface result.
-                if (prune && BoxDistanceSquared(low, high, patchLow, patchHigh) >= bestSquared) continue;
                 foreach (var p in limbSurface)
                 {
-                    if (prune && BoxDistanceSquared(low, high, p, p) >= bestSquared) continue;
                     Vector3 closest = ClosestPoint(p, a, b, c);
                     float squared = (closest - p).sqrMagnitude;
                     if (squared >= bestSquared) continue;
@@ -224,5 +290,13 @@ public sealed class DatasetContactGeometry : IDisposable
         return a + ab * (vb / denominator) + ac * (vc / denominator);
     }
 
-    public void Dispose() { foreach (var part in parts) if (part.baked) UnityEngine.Object.DestroyImmediate(part.baked); }
+    public void Dispose()
+    {
+        foreach (var part in parts)
+        {
+            foreach (var buffer in part.indices.Values) buffer.Dispose();
+            if (part.positions.IsCreated) part.positions.Dispose();
+            if (part.baked) UnityEngine.Object.DestroyImmediate(part.baked);
+        }
+    }
 }

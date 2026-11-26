@@ -52,7 +52,15 @@ public static class DatasetGeneratorChecks
                         foreach (var view in views)
                         {
                             view.Apply(stage.camera);
-                            foreach (var actor in stage.player.actors)
+                            if (view.allowsPartialBody)
+                            {
+                                foreach (var actor in stage.player.actors)
+                                    if (!DatasetCameraPlanner.PartialPointsSafe(stage.camera, new[] { HumanBodyBones.Head, HumanBodyBones.Hips, HumanBodyBones.Chest,
+                                        HumanBodyBones.LeftHand, HumanBodyBones.RightHand, HumanBodyBones.LeftFoot, HumanBodyBones.RightFoot,
+                                        HumanBodyBones.LeftLowerArm, HumanBodyBones.RightLowerArm, HumanBodyBones.LeftLowerLeg, HumanBodyBones.RightLowerLeg }
+                                        .Select(b => actor.GetBoneTransform(b).position).ToArray(), config.minimumPartialBodyCoverage)) throw new Exception("Partial framing failed.");
+                            }
+                            else foreach (var actor in stage.player.actors)
                                 foreach (var bone in new[] { HumanBodyBones.Head, HumanBodyBones.LeftHand, HumanBodyBones.RightHand, HumanBodyBones.LeftFoot, HumanBodyBones.RightFoot })
                                     if (!FightDataset.Prototype.FightScenarioRandomizer.Inside(stage.camera, actor.GetBoneTransform(bone).position, 0.02f))
                                         throw new Exception("Framing failed: " + category + " seed=" + seed);

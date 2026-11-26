@@ -44,6 +44,7 @@ public static class DatasetSceneFactory
         public DatasetScenarioPlayer player;
         public Camera camera;
         public string[] modelPaths;
+        public float[] standingHeights;
     }
 
     [MenuItem("Tools/Fight Dataset/Generator/2 Build Or Open Generator Room")]
@@ -109,9 +110,12 @@ public static class DatasetSceneFactory
         camera.aspect = config.width / (float)config.height;
         var idle = config.catalog.clips.Where(DatasetCatalogTools.Usable).Where(c => c.kind == ClipKind.Idle).ToArray();
         if (idle.Length == 0) throw new InvalidOperationException("At least one Idle clip is required.");
-        int first = random.Next(config.catalog.characters.Count);
-        int second = config.catalog.characters.Count == 1 ? first : (first + 1 + random.Next(config.catalog.characters.Count - 1)) % config.catalog.characters.Count;
-        var models = new[] { config.catalog.characters[first], config.catalog.characters[second] };
+        var identities = DatasetCharacterTools.DistinctModels(config.catalog.characters);
+        int first = random.Next(identities.Length);
+        int second = identities.Length == 1 ? first : (first + 1 + random.Next(identities.Length - 1)) % identities.Length;
+        var models = new[] { identities[first], identities[second] };
+        var heightRandom = new System.Random(seed ^ 0x673ADC);
+        var standingHeights = new float[2];
         var player = root.AddComponent<DatasetScenarioPlayer>();
         player.playAutomatically = false;
         player.actors = new Animator[2];
@@ -126,10 +130,11 @@ public static class DatasetSceneFactory
             animator.avatar = avatar;
             animator.applyRootMotion = false;
             animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
-            Normalize(animator, player.neutralClips[i]);
+            float height = config.randomizeCharacterHeight ? DatasetScenarioPlanner.Pick(heightRandom, config.characterHeightMeters) : 0;
+            standingHeights[i] = Normalize(animator, player.neutralClips[i], height);
             player.actors[i] = animator;
         }
-        return new Stage { root = root, player = player, camera = camera, modelPaths = models.Select(AssetDatabase.GetAssetPath).ToArray() };
+        return new Stage { root = root, player = player, camera = camera, modelPaths = models.Select(AssetDatabase.GetAssetPath).ToArray(), standingHeights = standingHeights };
     }
 
     public static void Sample(Animator animator, AnimationClip clip, float time)
@@ -148,7 +153,7 @@ public static class DatasetSceneFactory
         finally { DatasetPlayableLifetime.Release(ref graph); }
     }
 
-    private static void Normalize(Animator animator, AnimationClip idle)
+    private static float Normalize(Animator animator, AnimationClip idle, float requestedHeight)
     {
         if (!animator.avatar || !animator.avatar.isValid || !animator.avatar.isHuman) throw new InvalidOperationException("Invalid character avatar.");
         Sample(animator, idle, 0);
@@ -156,7 +161,20 @@ public static class DatasetSceneFactory
         if (height < 0.1f) throw new InvalidOperationException("Invalid character height.");
         animator.transform.localScale *= 1.5f / height;
         Sample(animator, idle, 0);
-        float bottom = float.PositiveInfinity;
+        Bounds bounds = CharacterBounds(animator);
+        if (requestedHeight > 0)
+        {
+            animator.transform.localScale *= requestedHeight / bounds.size.y;
+            Sample(animator, idle, 0);
+            bounds = CharacterBounds(animator);
+        }
+        animator.transform.position += Vector3.up * (animator.transform.parent.position.y - bounds.min.y);
+        return bounds.size.y;
+    }
+
+    public static Bounds CharacterBounds(Animator animator)
+    {
+        bool found = false; Bounds bounds = default;
         foreach (var skin in animator.GetComponentsInChildren<SkinnedMeshRenderer>())
         {
             skin.updateWhenOffscreen = true;
@@ -165,12 +183,16 @@ public static class DatasetSceneFactory
             {
                 skin.BakeMesh(mesh, true);
                 var matrix = skin.transform.localToWorldMatrix;
-                foreach (var vertex in mesh.vertices) bottom = Mathf.Min(bottom, matrix.MultiplyPoint3x4(vertex).y);
+                foreach (var vertex in mesh.vertices)
+                {
+                    Vector3 point = matrix.MultiplyPoint3x4(vertex);
+                    if (!found) { bounds = new Bounds(point, Vector3.zero); found = true; } else bounds.Encapsulate(point);
+                }
             }
             finally { UnityEngine.Object.DestroyImmediate(mesh); }
         }
-        if (float.IsInfinity(bottom)) throw new InvalidOperationException("No skinned character geometry.");
-        animator.transform.position += Vector3.up * (animator.transform.parent.position.y - bottom);
+        if (!found || bounds.size.y < .1f) throw new InvalidOperationException("No skinned character geometry.");
+        return bounds;
     }
 
     private static void Cube(GameObject root, string name, Vector3 position, Vector3 scale, Material material)

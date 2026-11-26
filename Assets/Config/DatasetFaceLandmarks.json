@@ -1,0 +1,727 @@
+{
+    "version": 1,
+    "models": [
+        {
+            "model": "Assets/Characters/Ch02_nonPBR.fbx",
+            "guid": "3daf042c25f9dbf4ab749112c76807ed",
+            "dependencyHash": "b0f8b3d731f84864f45b9d0c7b44b1d5",
+            "reviewed": true,
+            "points": [
+                {
+                    "actor": 0,
+                    "keypoint": 0,
+                    "vertex": 6228,
+                    "mesh": "Ch02_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 1,
+                    "vertex": 10506,
+                    "mesh": "Ch02_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 2,
+                    "vertex": 10130,
+                    "mesh": "Ch02_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 3,
+                    "vertex": 6824,
+                    "mesh": "Ch02_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 4,
+                    "vertex": 5540,
+                    "mesh": "Ch02_Body"
+                }
+            ]
+        },
+        {
+            "model": "Assets/Characters/Ch12_nonPBR.fbx",
+            "guid": "5fc95d30cb437fa4eb2e2d6f7f2b7aca",
+            "dependencyHash": "c5ceabf94960d3e4cb3e4973f44916da",
+            "reviewed": true,
+            "points": [
+                {
+                    "actor": 0,
+                    "keypoint": 0,
+                    "vertex": 18537,
+                    "mesh": "Ch12"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 1,
+                    "vertex": 21197,
+                    "mesh": "Ch12"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 2,
+                    "vertex": 20880,
+                    "mesh": "Ch12"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 3,
+                    "vertex": 19452,
+                    "mesh": "Ch12"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 4,
+                    "vertex": 16476,
+                    "mesh": "Ch12"
+                }
+            ]
+        },
+        {
+            "model": "Assets/Characters/Ch13_nonPBR.fbx",
+            "guid": "25a4916c392c0c347a70992c6b8f1525",
+            "dependencyHash": "f376a7277752ce1ebb68a9ff5feb159f",
+            "reviewed": true,
+            "points": [
+                {
+                    "actor": 0,
+                    "keypoint": 0,
+                    "vertex": 7007,
+                    "mesh": "Ch13_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 1,
+                    "vertex": 10724,
+                    "mesh": "Ch13_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 2,
+                    "vertex": 7964,
+                    "mesh": "Ch13_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 3,
+                    "vertex": 8799,
+                    "mesh": "Ch13_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 4,
+                    "vertex": 8208,
+                    "mesh": "Ch13_Body"
+                }
+            ]
+        },
+        {
+            "model": "Assets/Characters/Ch22_nonPBR.fbx",
+            "guid": "e500bccc623940043bcc7dc39cdb6aad",
+            "dependencyHash": "bb54872fadf89006b5b01425834c08c2",
+            "reviewed": true,
+            "points": [
+                {
+                    "actor": 0,
+                    "keypoint": 0,
+                    "vertex": 9672,
+                    "mesh": "Ch22_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 1,
+                    "vertex": 10173,
+                    "mesh": "Ch22_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 2,
+                    "vertex": 4825,
+                    "mesh": "Ch22_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 3,
+                    "vertex": 9168,
+                    "mesh": "Ch22_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 4,
+                    "vertex": 7557,
+                    "mesh": "Ch22_Body"
+                }
+            ]
+        },
+        {
+            "model": "Assets/Characters/Ch26_nonPBR.fbx",
+            "guid": "ebc8af18300be8842b66b9dc53c6b3da",
+            "dependencyHash": "587c736c89355e288f6ea82877797b54",
+            "reviewed": true,
+            "points": [
+                {
+                    "actor": 0,
+                    "keypoint": 0,
+                    "vertex": 4222,
+                    "mesh": "Ch26_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 1,
+                    "vertex": 10584,
+                    "mesh": "Ch26_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 2,
+                    "vertex": 10199,
+                    "mesh": "Ch26_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 3,
+                    "vertex": 2943,
+                    "mesh": "Ch26_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 4,
+                    "vertex": 6666,
+                    "mesh": "Ch26_Body"
+                }
+            ]
+        },
+        {
+            "model": "Assets/Characters/Ch27_nonPBR.fbx",
+            "guid": "dcd52ce8cf26c5941b4a7cf586ad825e",
+            "dependencyHash": "ba649341d580386c59d626d01178aa5f",
+            "reviewed": true,
+            "points": [
+                {
+                    "actor": 0,
+                    "keypoint": 0,
+                    "vertex": 6487,
+                    "mesh": "Ch27_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 1,
+                    "vertex": 10395,
+                    "mesh": "Ch27_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 2,
+                    "vertex": 9997,
+                    "mesh": "Ch27_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 3,
+                    "vertex": 3007,
+                    "mesh": "Ch27_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 4,
+                    "vertex": 6403,
+                    "mesh": "Ch27_Body"
+                }
+            ]
+        },
+        {
+            "model": "Assets/Characters/Ch28_nonPBR.fbx",
+            "guid": "53e66bead051d71408ea082ad3853933",
+            "dependencyHash": "680c8922364fc9312829b0d80970e52b",
+            "reviewed": true,
+            "points": [
+                {
+                    "actor": 0,
+                    "keypoint": 0,
+                    "vertex": 1957,
+                    "mesh": "Ch28_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 1,
+                    "vertex": 9340,
+                    "mesh": "Ch28_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 2,
+                    "vertex": 8887,
+                    "mesh": "Ch28_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 3,
+                    "vertex": 8353,
+                    "mesh": "Ch28_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 4,
+                    "vertex": 4274,
+                    "mesh": "Ch28_Body"
+                }
+            ]
+        },
+        {
+            "model": "Assets/Characters/Ch33_nonPBR.fbx",
+            "guid": "f2c4c9f67d4c95949a4905d9c3573c47",
+            "dependencyHash": "bae7fe1532820b41e87556dff295a035",
+            "reviewed": true,
+            "points": [
+                {
+                    "actor": 0,
+                    "keypoint": 0,
+                    "vertex": 4822,
+                    "mesh": "Ch33_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 1,
+                    "vertex": 9688,
+                    "mesh": "Ch33_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 2,
+                    "vertex": 9261,
+                    "mesh": "Ch33_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 3,
+                    "vertex": 4549,
+                    "mesh": "Ch33_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 4,
+                    "vertex": 820,
+                    "mesh": "Ch33_Body"
+                }
+            ]
+        },
+        {
+            "model": "Assets/Characters/Ch37_nonPBR.fbx",
+            "guid": "85e17511ef344f941af0336bc9a87a9f",
+            "dependencyHash": "6095edd82a2112570570ce885b42b1f7",
+            "reviewed": true,
+            "points": [
+                {
+                    "actor": 0,
+                    "keypoint": 0,
+                    "vertex": 1565,
+                    "mesh": "Ch37_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 1,
+                    "vertex": 9441,
+                    "mesh": "Ch37_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 2,
+                    "vertex": 9028,
+                    "mesh": "Ch37_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 3,
+                    "vertex": 4143,
+                    "mesh": "Ch37_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 4,
+                    "vertex": 4995,
+                    "mesh": "Ch37_Body"
+                }
+            ]
+        },
+        {
+            "model": "Assets/Characters/Ch38_nonPBR.fbx",
+            "guid": "41d9090dd483b3d43992851fdf6c375b",
+            "dependencyHash": "459758793c221d73e111f7571a06af02",
+            "reviewed": true,
+            "points": [
+                {
+                    "actor": 0,
+                    "keypoint": 0,
+                    "vertex": 5565,
+                    "mesh": "Ch38_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 1,
+                    "vertex": 9829,
+                    "mesh": "Ch38_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 2,
+                    "vertex": 9482,
+                    "mesh": "Ch38_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 3,
+                    "vertex": 4890,
+                    "mesh": "Ch38_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 4,
+                    "vertex": 7120,
+                    "mesh": "Ch38_Body"
+                }
+            ]
+        },
+        {
+            "model": "Assets/Characters/Ch41_nonPBR.fbx",
+            "guid": "c5bd99d0112c9cc488ec047e6b847f90",
+            "dependencyHash": "cd286cc1c5f270c6e7b5ef2cc0016583",
+            "reviewed": true,
+            "points": [
+                {
+                    "actor": 0,
+                    "keypoint": 0,
+                    "vertex": 8469,
+                    "mesh": "Ch41_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 1,
+                    "vertex": 5052,
+                    "mesh": "Ch41_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 2,
+                    "vertex": 8037,
+                    "mesh": "Ch41_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 3,
+                    "vertex": 6030,
+                    "mesh": "Ch41_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 4,
+                    "vertex": 7619,
+                    "mesh": "Ch41_Body"
+                }
+            ]
+        },
+        {
+            "model": "Assets/Characters/Сharacter 2.fbx",
+            "guid": "2a5a46edb96454e41923ee9a2c5693d8",
+            "dependencyHash": "7425bf1671b8bba5f0128b34a731268d",
+            "reviewed": true,
+            "points": [
+                {
+                    "actor": 0,
+                    "keypoint": 0,
+                    "vertex": 2791,
+                    "mesh": "Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 1,
+                    "vertex": 456,
+                    "mesh": "Eyes"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 2,
+                    "vertex": 177,
+                    "mesh": "Eyes"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 3,
+                    "vertex": 7722,
+                    "mesh": "Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 4,
+                    "vertex": 7553,
+                    "mesh": "Body"
+                }
+            ]
+        },
+        {
+            "model": "Assets/Characters/Ch01_nonPBR.fbx",
+            "guid": "3cd3184b7da856448856366a2f6cb181",
+            "dependencyHash": "de359136051a2ad305775503f6c24474",
+            "reviewed": true,
+            "points": [
+                {
+                    "actor": 0,
+                    "keypoint": 0,
+                    "vertex": 5757,
+                    "mesh": "Ch01_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 1,
+                    "vertex": 9820,
+                    "mesh": "Ch01_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 2,
+                    "vertex": 9347,
+                    "mesh": "Ch01_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 3,
+                    "vertex": 4463,
+                    "mesh": "Ch01_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 4,
+                    "vertex": 7067,
+                    "mesh": "Ch01_Body"
+                }
+            ]
+        },
+        {
+            "model": "Assets/Characters/Ch06_nonPBR.fbx",
+            "guid": "bdd81b513a9bc364dac7504103343e4f",
+            "dependencyHash": "0cf0bbf5bf74ea7852a544c30b2e60db",
+            "reviewed": true,
+            "points": [
+                {
+                    "actor": 0,
+                    "keypoint": 0,
+                    "vertex": 4545,
+                    "mesh": "Ch06"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 1,
+                    "vertex": 26010,
+                    "mesh": "Ch06"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 2,
+                    "vertex": 25549,
+                    "mesh": "Ch06"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 3,
+                    "vertex": 571,
+                    "mesh": "Ch06"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 4,
+                    "vertex": 1523,
+                    "mesh": "Ch06"
+                }
+            ]
+        },
+        {
+            "model": "Assets/Characters/Ch08_nonPBR.fbx",
+            "guid": "70b185c36a265b14994b32043a676e7b",
+            "dependencyHash": "53c734cde08b841bdcb53caf07bc9138",
+            "reviewed": true,
+            "points": [
+                {
+                    "actor": 0,
+                    "keypoint": 0,
+                    "vertex": 3657,
+                    "mesh": "Ch08_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 1,
+                    "vertex": 4766,
+                    "mesh": "Ch08_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 2,
+                    "vertex": 3492,
+                    "mesh": "Ch08_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 3,
+                    "vertex": 5757,
+                    "mesh": "Ch08_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 4,
+                    "vertex": 1117,
+                    "mesh": "Ch08_Body"
+                }
+            ]
+        },
+        {
+            "model": "Assets/Characters/Ch31_nonPBR.fbx",
+            "guid": "21e2beb49ef217947aa0e2192aa2a329",
+            "dependencyHash": "74f2e56506880b0ba2d1d79e2e085e09",
+            "reviewed": true,
+            "points": [
+                {
+                    "actor": 0,
+                    "keypoint": 0,
+                    "vertex": 6205,
+                    "mesh": "Ch31_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 1,
+                    "vertex": 9781,
+                    "mesh": "Ch31_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 2,
+                    "vertex": 9327,
+                    "mesh": "Ch31_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 3,
+                    "vertex": 5364,
+                    "mesh": "Ch31_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 4,
+                    "vertex": 8069,
+                    "mesh": "Ch31_Body"
+                }
+            ]
+        },
+        {
+            "model": "Assets/Characters/Ch42_nonPBR(1).fbx",
+            "guid": "a49509e9e08c9ef4e88542bd8303ffb9",
+            "dependencyHash": "57a32c34c30dc55aeb8b7468109f35cc",
+            "reviewed": true,
+            "points": [
+                {
+                    "actor": 0,
+                    "keypoint": 0,
+                    "vertex": 6235,
+                    "mesh": "Ch42_Body1"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 1,
+                    "vertex": 11112,
+                    "mesh": "Ch42_Body1"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 2,
+                    "vertex": 10723,
+                    "mesh": "Ch42_Body1"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 3,
+                    "vertex": 9701,
+                    "mesh": "Ch42_Body1"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 4,
+                    "vertex": 8565,
+                    "mesh": "Ch42_Body1"
+                }
+            ]
+        },
+        {
+            "model": "Assets/Characters/Ch42_nonPBR.fbx",
+            "guid": "76a2175bb8f534b4a9067c2ddb31e30b",
+            "dependencyHash": "3e2d775e2cf79dc7e3e5542304eefff4",
+            "reviewed": true,
+            "points": [
+                {
+                    "actor": 0,
+                    "keypoint": 0,
+                    "vertex": 6746,
+                    "mesh": "Ch42_Body1"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 1,
+                    "vertex": 7221,
+                    "mesh": "Ch42_Body1"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 2,
+                    "vertex": 8104,
+                    "mesh": "Ch42_Body1"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 3,
+                    "vertex": 9587,
+                    "mesh": "Ch42_Body1"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 4,
+                    "vertex": 8459,
+                    "mesh": "Ch42_Body1"
+                }
+            ]
+        },
+        {
+            "model": "Assets/Characters/Character1.fbx",
+            "guid": "12d404c2da4d05a4782229a3566f03a7",
+            "dependencyHash": "eabb4a9ac548354743bcf085eeb15aa7",
+            "reviewed": true,
+            "points": [
+                {
+                    "actor": 0,
+                    "keypoint": 0,
+                    "vertex": 3908,
+                    "mesh": "Ch23_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 1,
+                    "vertex": 4764,
+                    "mesh": "Ch23_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 2,
+                    "vertex": 3965,
+                    "mesh": "Ch23_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 3,
+                    "vertex": 1385,
+                    "mesh": "Ch23_Body"
+                },
+                {
+                    "actor": 0,
+                    "keypoint": 4,
+                    "vertex": 4462,
+                    "mesh": "Ch23_Body"
+                }
+            ]
+        }
+    ]
+}

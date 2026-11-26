@@ -1,0 +1,119 @@
+{
+    "schema": "person_identity_v1",
+    "people": [
+        {
+            "person_id": 1,
+            "guid": "3cd3184b7da856448856366a2f6cb181",
+            "model_asset": "Assets/Characters/Ch01_nonPBR.fbx",
+            "label": "person_001"
+        },
+        {
+            "person_id": 2,
+            "guid": "3daf042c25f9dbf4ab749112c76807ed",
+            "model_asset": "Assets/Characters/Ch02_nonPBR.fbx",
+            "label": "person_002"
+        },
+        {
+            "person_id": 3,
+            "guid": "bdd81b513a9bc364dac7504103343e4f",
+            "model_asset": "Assets/Characters/Ch06_nonPBR.fbx",
+            "label": "person_003"
+        },
+        {
+            "person_id": 4,
+            "guid": "70b185c36a265b14994b32043a676e7b",
+            "model_asset": "Assets/Characters/Ch08_nonPBR.fbx",
+            "label": "person_004"
+        },
+        {
+            "person_id": 5,
+            "guid": "5fc95d30cb437fa4eb2e2d6f7f2b7aca",
+            "model_asset": "Assets/Characters/Ch12_nonPBR.fbx",
+            "label": "person_005"
+        },
+        {
+            "person_id": 6,
+            "guid": "25a4916c392c0c347a70992c6b8f1525",
+            "model_asset": "Assets/Characters/Ch13_nonPBR.fbx",
+            "label": "person_006"
+        },
+        {
+            "person_id": 7,
+            "guid": "e500bccc623940043bcc7dc39cdb6aad",
+            "model_asset": "Assets/Characters/Ch22_nonPBR.fbx",
+            "label": "person_007"
+        },
+        {
+            "person_id": 8,
+            "guid": "ebc8af18300be8842b66b9dc53c6b3da",
+            "model_asset": "Assets/Characters/Ch26_nonPBR.fbx",
+            "label": "person_008"
+        },
+        {
+            "person_id": 9,
+            "guid": "dcd52ce8cf26c5941b4a7cf586ad825e",
+            "model_asset": "Assets/Characters/Ch27_nonPBR.fbx",
+            "label": "person_009"
+        },
+        {
+            "person_id": 10,
+            "guid": "53e66bead051d71408ea082ad3853933",
+            "model_asset": "Assets/Characters/Ch28_nonPBR.fbx",
+            "label": "person_010"
+        },
+        {
+            "person_id": 11,
+            "guid": "21e2beb49ef217947aa0e2192aa2a329",
+            "model_asset": "Assets/Characters/Ch31_nonPBR.fbx",
+            "label": "person_011"
+        },
+        {
+            "person_id": 12,
+            "guid": "f2c4c9f67d4c95949a4905d9c3573c47",
+            "model_asset": "Assets/Characters/Ch33_nonPBR.fbx",
+            "label": "person_012"
+        },
+        {
+            "person_id": 13,
+            "guid": "85e17511ef344f941af0336bc9a87a9f",
+            "model_asset": "Assets/Characters/Ch37_nonPBR.fbx",
+            "label": "person_013"
+        },
+        {
+            "person_id": 14,
+            "guid": "41d9090dd483b3d43992851fdf6c375b",
+            "model_asset": "Assets/Characters/Ch38_nonPBR.fbx",
+            "label": "person_014"
+        },
+        {
+            "person_id": 15,
+            "guid": "c5bd99d0112c9cc488ec047e6b847f90",
+            "model_asset": "Assets/Characters/Ch41_nonPBR.fbx",
+            "label": "person_015"
+        },
+        {
+            "person_id": 16,
+            "guid": "a49509e9e08c9ef4e88542bd8303ffb9",
+            "model_asset": "Assets/Characters/Ch42_nonPBR(1).fbx",
+            "label": "person_016"
+        },
+        {
+            "person_id": 16,
+            "guid": "76a2175bb8f534b4a9067c2ddb31e30b",
+            "model_asset": "Assets/Characters/Ch42_nonPBR.fbx",
+            "label": "person_016"
+        },
+        {
+            "person_id": 17,
+            "guid": "12d404c2da4d05a4782229a3566f03a7",
+            "model_asset": "Assets/Characters/Character1.fbx",
+            "label": "person_017"
+        },
+        {
+            "person_id": 18,
+            "guid": "2a5a46edb96454e41923ee9a2c5693d8",
+            "model_asset": "Assets/Characters/Сharacter 2.fbx",
+            "label": "person_018"
+        }
+    ]
+}

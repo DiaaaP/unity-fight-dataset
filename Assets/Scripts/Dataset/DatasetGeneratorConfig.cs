@@ -26,6 +26,22 @@ namespace FightDataset
         public float attackBlendIn = 0.28f, reactionBlendIn = 0.22f, blendOut = 0.4f;
         public Vector2 roomSize = new Vector2(8f, 8f);
         public float roomHeight = 3.6f;
+        [Header("Character diversity")]
+        public bool randomizeCharacterHeight = true;
+        [Tooltip("Standing visible mesh height in metres. Uniform XYZ scale is fitted before contact calibration.")]
+        public Vector2 characterHeightMeters = new Vector2(1.65f, 1.95f);
+        [Header("Partial camera framing")]
+        [Range(0f, 1f)] public float partialFramingProbability = 0.4f;
+        [Tooltip("Minimum projected body coverage retained for each person in a partial view.")]
+        [Range(0.25f, 0.8f)] public float minimumPartialBodyCoverage = 0.45f;
+        [Header("Camera variety and hard pose samples")]
+        public Vector2 cameraDistanceMeters = new Vector2(.95f, 7.5f);
+        public Vector2 cameraRollDegrees = new Vector2(-7f, 7f);
+        [Range(0f, 1f)] public float occlusionViewProbability = .05f;
+        [Tooltip("Build data.yaml image lists at this image rate; original MP4/JPG/TXT frames are kept.")]
+        [Range(1, 25)] public int poseTrainingSamplesPerSecond = 5;
+        [Tooltip("Target fraction of selected training frames where at least two in-frame body keypoints are occluded by the other person.")]
+        [Range(0f, .5f)] public float targetOccludedTrainingFraction = .05f;
         public Vector2 cameraHeight = new Vector2(0.25f, 3.35f);
         public Vector2 cameraFov = new Vector2(35f, 90f);
         [Header("Camera probabilities (relative weights)")]
@@ -60,11 +76,20 @@ namespace FightDataset
                 fps < 1 || fps > 60 || poseJpegQuality < 70 || poseJpegQuality > 100 || minimumDurationSeconds < 3f || minimumDurationSeconds > 30f ||
                 speedRange.x < 0.5f || speedRange.y > 1.5f || speedRange.x > speedRange.y ||
                 roomSize.x < 6f || roomSize.y < 6f || roomHeight < 3f ||
+                !FiniteRange(characterHeightMeters, 1.35f, 2.15f) ||
+                float.IsNaN(partialFramingProbability) || partialFramingProbability < 0 || partialFramingProbability > 1 ||
+                float.IsNaN(minimumPartialBodyCoverage) || minimumPartialBodyCoverage < .25f || minimumPartialBodyCoverage > .8f ||
+                !FiniteRange(cameraDistanceMeters, .7f, 12f) || !FiniteRange(cameraRollDegrees, -15f, 15f) ||
+                float.IsNaN(occlusionViewProbability) || occlusionViewProbability < 0 || occlusionViewProbability > 1 ||
+                float.IsNaN(targetOccludedTrainingFraction) || targetOccludedTrainingFraction < 0 || targetOccludedTrainingFraction > .5f ||
+                poseTrainingSamplesPerSecond < 1 || poseTrainingSamplesPerSecond > 25 ||
                 cameraHeight.x < 0.15f || cameraHeight.y > roomHeight - 0.1f || cameraHeight.x > cameraHeight.y ||
-                cameraFov.x < 30f || cameraFov.y > 100f || cameraFov.x > cameraFov.y ||
+                cameraFov.x < 30f || cameraFov.y > 115f || cameraFov.x > cameraFov.y ||
                 attackBlendIn < 0.02f || reactionBlendIn < 0.02f || blendOut < 0.05f ||
                 trainFraction < 0f || validationFraction < 0f || trainFraction + validationFraction > 1f)
                 throw new System.InvalidOperationException("Invalid dataset generator configuration.");
         }
+        private static bool FiniteRange(Vector2 value, float low, float high) =>
+            !float.IsNaN(value.x) && !float.IsNaN(value.y) && value.x >= low && value.y <= high && value.x <= value.y;
     }
 }

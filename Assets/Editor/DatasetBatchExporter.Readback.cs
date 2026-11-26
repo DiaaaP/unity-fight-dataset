@@ -19,7 +19,7 @@ public static partial class DatasetBatchExporter
                 if (!encoders[view].AddFrame(config.width, config.height, config.width * 4, TextureFormat.RGBA32, frame.data[view]))
                     throw new IOException("Encoder rejected asynchronous frame " + frame.index);
                 if (poseWriters != null) poseWriters[view].WriteLine(frame.projections[view]);
-                yoloWriter?.Enqueue(cameras[view].id, frame.index, frame.data[view].ToArray(), frame.yoloLabels[view]);
+                yoloWriter?.Enqueue(cameras[view].id, frame.index, frame.data[view], frame.yoloLabels[view]);
                 if (frame.inspection)
                 {
                     pixels.LoadRawTextureData(frame.data[view]);

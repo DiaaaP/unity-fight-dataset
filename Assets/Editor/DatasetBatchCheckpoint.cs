@@ -92,6 +92,11 @@ public sealed class DatasetBatchCheckpoint
             , "Assets/Editor/DatasetStrikeProfile.cs", "Assets/Editor/DatasetReactionTiming.cs"
             , "Assets/Editor/DatasetPenetrationGuard.cs"
             , "Assets/Editor/DatasetClipDisplacement.cs"
+            , "Assets/Editor/DatasetCharacterTools.cs"
+            , "Assets/Editor/DatasetFaceLandmarks.cs", "Assets/Config/DatasetFaceLandmarks.json"
+            , "Assets/Editor/DatasetPoseTrainingSelection.cs"
+            , "Assets/Editor/DatasetPersonIds.cs", "Assets/Config/DatasetPersonIds.json"
+            , "Assets/Editor/DatasetFbxMaterials.cs", "Assets/Editor/DatasetPenetrationBurst.cs"
         }).Distinct().OrderBy(p => p, StringComparer.Ordinal);
         var value = new StringBuilder(unity_version).Append(config_json).Append(JsonUtility.ToJson(this.WithoutFingerprint()));
         foreach (string path in paths)

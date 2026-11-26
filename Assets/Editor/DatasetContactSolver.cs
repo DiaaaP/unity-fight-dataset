@@ -64,7 +64,7 @@ public static class DatasetContactSolver
             while (steps.MoveNext()) { }
     }
 
-    public static IEnumerator<object> CalibrateSteps(DatasetGeneratorConfig config, DatasetScenarioPlayer player, ScenarioAction action, CatalogClip entry, bool reposition)
+    public static IEnumerator<object> CalibrateSteps(DatasetGeneratorConfig config, DatasetScenarioPlayer player, ScenarioAction action, CatalogClip entry, bool reposition, DatasetPenetrationGuard sharedGuard = null)
     {
         var attacker = player.actors[action.actor];
         var defender = player.actors[action.target];
@@ -140,8 +140,9 @@ public static class DatasetContactSolver
         if (candidates.Count > 0)
         using (var attackMesh = new DatasetContactGeometry(attacker))
         using (var targetMesh = new DatasetContactGeometry(defender))
-        using (var penetration = new DatasetPenetrationGuard(player))
+        using (var ownedGuard = sharedGuard == null ? new DatasetPenetrationGuard(player) : null)
         {
+            var penetration = sharedGuard ?? ownedGuard;
             foreach (var candidate in candidates.OrderByDescending(c => c.score).Take(60))
             {
                 Vector3 incoming = candidate.velocity; incoming.y = 0;

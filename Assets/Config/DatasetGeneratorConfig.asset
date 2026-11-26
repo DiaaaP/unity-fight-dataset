@@ -33,10 +33,19 @@ MonoBehaviour:
   attackBlendIn: 0.28
   reactionBlendIn: 0.22
   blendOut: 0.4
-  roomSize: {x: 8, y: 8}
+  roomSize: {x: 12, y: 12}
   roomHeight: 3.6
+  randomizeCharacterHeight: 1
+  characterHeightMeters: {x: 1.65, y: 1.95}
+  partialFramingProbability: 0.4
+  minimumPartialBodyCoverage: 0.45
+  cameraDistanceMeters: {x: 0.95, y: 7.5}
+  cameraRollDegrees: {x: -7, y: 7}
+  occlusionViewProbability: 0.05
+  poseTrainingSamplesPerSecond: 5
+  targetOccludedTrainingFraction: 0.05
   cameraHeight: {x: 0.25, y: 3.35}
-  cameraFov: {x: 35, y: 90}
+  cameraFov: {x: 30, y: 110}
   highCameraWeight: 45
   overheadCameraWeight: 15
   wideCameraWeight: 15
